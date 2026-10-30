@@ -2,6 +2,7 @@
   "id": "masscan",
   "name": "Masscan",
   "icon": "⚡",
+  "category": "network",
   "description": "Escaneo limitado de redes privadas, hasta 256 direcciones, 256 puertos y 1000 paquetes por segundo.",
   "binary": "masscan",
   "commands": [
@@ -30,6 +31,8 @@
           "label": "Paquetes por segundo (máximo 1000)",
           "type": "number",
           "default": "100",
+          "min": 1,
+          "max": 1000,
           "validation": "scan_rate"
         }
       ]

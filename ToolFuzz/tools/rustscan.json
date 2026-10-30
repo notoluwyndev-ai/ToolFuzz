@@ -2,6 +2,7 @@
   "id": "rustscan",
   "name": "RustScan",
   "icon": "🦀",
+  "category": "network",
   "description": "Escáner TCP rápido limitado a una IP privada y hasta 256 puertos.",
   "binary": "rustscan",
   "commands": [

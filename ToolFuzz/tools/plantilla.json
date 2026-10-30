@@ -2,6 +2,7 @@
   "id": "tool-id",
   "name": "Nombre de la herramienta",
   "icon": "🔧",
+  "category": "network",
   "description": "Describe qué hace y cuáles son sus límites de uso.",
   "binary": "executable-allowlisted",
   "commands": [

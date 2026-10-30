@@ -2,6 +2,7 @@
   "id": "whois",
   "name": "Whois",
   "icon": "📜",
+  "category": "osint",
   "description": "Consulta puntual y de solo lectura de los datos públicos de registro de un dominio.",
   "binary": "whois",
   "commands": [

@@ -2,6 +2,7 @@
   "id": "gobuster",
   "name": "Gobuster",
   "icon": "📂",
+  "category": "webfuzz",
   "description": "Descubrimiento de rutas web en un servidor privado autorizado.",
   "binary": "gobuster",
   "commands": [

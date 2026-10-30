@@ -274,11 +274,14 @@ def _load_tool_file(config_path: Path) -> dict[str, Any] | None:
         logger.warning("Se omite %s: no contiene comandos válidos.", tool_id)
         return None
 
+    raw_category = candidate.get("category", "other")
+    category = raw_category.strip() if isinstance(raw_category, str) and raw_category.strip() else "other"
+
     tool: dict[str, Any] = {
         "id": tool_id,
         "name": candidate["name"],
         "icon": candidate["icon"],
-        "category": candidate.get("category", "other"),
+        "category": category,
         "description": candidate["description"],
         "binary": candidate["binary"],
         "commands": enabled_commands,

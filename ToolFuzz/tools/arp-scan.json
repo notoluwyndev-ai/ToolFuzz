@@ -2,6 +2,7 @@
   "id": "arp-scan",
   "name": "ARP (tabla local)",
   "icon": "📡",
+  "category": "network",
   "description": "Muestra las entradas ARP que Windows ya conoce; no realiza un barrido activo.",
   "binary": "arp",
   "commands": [

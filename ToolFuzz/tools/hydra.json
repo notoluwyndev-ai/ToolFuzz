@@ -2,6 +2,7 @@
   "id": "hydra",
   "name": "Hydra",
   "icon": "💥",
+  "category": "creds",
   "description": "Fuerza bruta rápida contra servicios de red comunes en entornos privados autorizados.",
   "binary": "hydra",
   "commands": [
@@ -52,7 +53,7 @@
         "-vV",
         "-e",
         "nsr",
-        "http-post-form://{target}:443/login.php:user={User}&pass={Pass}:Login incorrecto"
+        "http-post-form://{target}:443/login.php:user=^USER^&pass=^PASS^:Login incorrecto"
       ],
       "fields": [
         {
