@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>ToolFuzz :: Command & Control Panel</title>
+<style>
+:root{
+  --bg:#030704;
+  --green:#00ff66;
+  --green-dim:#0a3d1f;
+  --green-mid:#19a84a;
+  --green-glow: rgba(0,255,102,0.45);
+  --panel:#051208;
+  --panel-border:#0f3d1f;
+  --text-dim:#68b385;
+  --red:#ff3b3b;
+  --amber:#ffd23f;
+  --cyan:#00f0ff;
+}
+*{box-sizing:border-box;}
+html,body{
+  margin:0;padding:0;
+  background:var(--bg);
+  color:var(--green);
+  font-family:'Courier New', 'Consolas', monospace;
+  overflow-x:hidden;
+}
+canvas#matrix{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:0;opacity:0.22;
+  pointer-events:none;
+}
+.app{
+  position:relative;z-index:1;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+}
+
+/* ---------- HEADER ---------- */
+header{
+  padding:16px 28px;
+  border-bottom:1px solid var(--panel-border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg, rgba(2,15,6,0.95), rgba(3,7,4,0.8));
+  backdrop-filter:blur(6px);
+  flex-wrap:wrap;
+  gap:12px;
+}
+.brand{
+  display:flex;align-items:center;gap:14px;
+}
+.brand .logo{
+  font-size:24px;
+  font-weight:bold;
+  letter-spacing:2px;
+  text-shadow:0 0 10px var(--green-glow);
+}
+.brand .logo span{color:var(--text-dim);}
+.brand .tag{
+  font-size:10px;
+  color:var(--cyan);
+  border:1px solid rgba(0,240,255,0.3);
+  padding:3px 8px;
+  border-radius:3px;
+  background:rgba(0,240,255,0.05);
+}
+.status-line{
+  font-size:12px;color:var(--text-dim);
+  display:flex;gap:18px;align-items:center;
+}
+.badge-backend {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--panel-border);
+  background: #020a04;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.badge-backend.connected { border-color: var(--green); color: var(--green); box-shadow: 0 0 8px rgba(0,255,102,0.2); }
+.badge-backend.disconnected { border-color: var(--amber); color: var(--amber); }
+
+.dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 6px var(--green);
+  display:inline-block;margin-right:6px;
+  animation:pulse 1.6s infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1;}
+  50%{opacity:0.35;}
+}
+
+/* ---------- MAIN LAYOUT ---------- */
+main{
+  flex:1;
+  padding:28px;
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+  max-width:1450px;
+  width:100%;
+  margin:0 auto;
+}
+
+.breadcrumb{
+  font-size:12px;color:var(--text-dim);
+  display:flex;align-items:center;gap:8px;
+}
+.breadcrumb .active{color:var(--green);}
+.breadcrumb button{
+  background:none;border:none;color:var(--text-dim);
+  font-family:inherit;cursor:pointer;font-size:12px;
+  text-decoration:underline;padding:0;
+}
+.breadcrumb button:hover{color:var(--green);}
+
+/* ---------- SEARCH & FILTERS ---------- */
+.search-row{
+  display:flex;align-items:center;gap:12px;
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:8px;
+  padding:12px 18px;
+  box-shadow:inset 0 0 15px rgba(0,255,102,0.02);
+}
+.search-row .prompt{color:var(--amber);font-size:14px;font-weight:bold;}
+.search-row input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--green);font-family:inherit;font-size:14px;
+}
+.search-row input::placeholder{color:#2f6b43;}
+.search-row .count{font-size:11px;color:var(--text-dim);white-space:nowrap;}
+
+/* ---------- CATEGORY SECTIONS ---------- */
+.category-block{display:flex;flex-direction:column;gap:14px;margin-bottom:10px;}
+.category-title{
+  display:flex;align-items:baseline;gap:10px;
+  font-size:13px;letter-spacing:1.5px;color:var(--green);
+  border-bottom:1px solid var(--panel-border);
+  padding-bottom:8px;
+}
+.category-title .cat-icon{font-size:16px;}
+.category-title .cat-count{font-size:10px;color:var(--text-dim);letter-spacing:0;}
+.no-results{
+  color:var(--text-dim);font-size:12px;padding:40px 0;text-align:center;
+}
+
+/* ---------- TOOL GRID ---------- */
+.tool-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(240px,1fr));
+  gap:18px;
+}
+.tool-card{
+  background:linear-gradient(160deg, rgba(3,25,10,0.6), rgba(2,8,4,0.95));
+  border:1px solid var(--panel-border);
+  border-radius:8px;
+  padding:20px;
+  cursor:pointer;
+  position:relative;
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  text-align:left;
+  overflow:hidden;
+}
+.tool-card::before{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(120deg, transparent 0%, rgba(0,255,102,0.08) 50%, transparent 100%);
+  transform:translateX(-120%);
+  transition:transform .5s ease;
+}
+.tool-card:hover::before{transform:translateX(120%);}
+.tool-card:hover{
+  border-color:var(--green);
+  box-shadow:0 0 20px rgba(0,255,102,0.2), inset 0 0 15px rgba(0,255,102,0.05);
+  transform:translateY(-3px);
+}
+.tool-card .icon{
+  font-size:30px;
+  margin-bottom:12px;
+  text-shadow:0 0 10px var(--green-glow);
+}
+.tool-card h3{
+  margin:0 0 6px 0;
+  font-size:15px;
+  letter-spacing:1px;
+  color:var(--green);
+}
+.tool-card p{
+  margin:0;
+  font-size:11.5px;
+  color:var(--text-dim);
+  line-height:1.5;
+}
+.tool-card .badge{
+  position:absolute;top:14px;right:14px;
+  font-size:9px;
+  border:1px solid var(--green-dim);
+  color:var(--text-dim);
+  padding:2px 6px;
+  border-radius:3px;
+  background:rgba(0,0,0,0.5);
+}
+.tool-card .badge.unavailable{border-color:var(--amber);color:var(--amber);}
+.tool-card .badge.catalog-only{border-color:#58705f;color:#a7b5aa;}
+
+/* ---------- TOOL VIEW ---------- */
+.tool-view{display:none;gap:20px;}
+.tool-view.active{display:flex;flex-direction:column;}
+.catalog-notice{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:8px;
+  padding:22px;
+  color:var(--text-dim);
+  font-size:12px;
+  line-height:1.6;
+}
+.catalog-notice h4{margin:0 0 8px;color:var(--amber);font-size:13px;letter-spacing:1px;}
+.catalog-notice ul{margin:12px 0 0;padding-left:22px;}
+
+.tool-header{
+  display:flex;align-items:center;gap:16px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--panel-border);
+}
+.tool-header .icon{font-size:34px;text-shadow:0 0 12px var(--green-glow);}
+.tool-header h2{margin:0;font-size:22px;letter-spacing:1px;}
+.tool-header p{margin:4px 0 0 0;font-size:12px;color:var(--text-dim);}
+
+.tabs{
+  display:flex;gap:8px;flex-wrap:wrap;
+  border-bottom:1px solid var(--panel-border);
+  padding-bottom:0;
+}
+.tab-btn{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-bottom:none;
+  color:var(--text-dim);
+  padding:10px 18px;
+  font-family:inherit;
+  font-size:12px;
+  cursor:pointer;
+  border-radius:6px 6px 0 0;
+  letter-spacing:0.5px;
+  transition:all .15s ease;
+}
+.tab-btn:hover{color:var(--green);}
+.tab-btn.active{
+  color:var(--bg);
+  background:var(--green);
+  box-shadow:0 0 14px var(--green-glow);
+  font-weight:bold;
+}
+
+.workspace{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:22px;
+}
+@media(max-width:950px){
+  .workspace{grid-template-columns:1fr;}
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:8px;
+  padding:22px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+}
+.panel h4{
+  margin:0 0 16px 0;
+  font-size:12px;
+  letter-spacing:1.5px;
+  color:var(--text-dim);
+  display:flex;align-items:center;gap:8px;
+}
+.panel h4::before{
+  content:"";
+  width:6px;height:6px;background:var(--green);
+  box-shadow:0 0 6px var(--green);
+  display:inline-block;
+}
+
+.field{margin-bottom:16px;}
+.field label{
+  display:block;
+  font-size:11px;
+  color:var(--text-dim);
+  margin-bottom:6px;
+  letter-spacing:0.5px;
+}
+.field input[type=text],
+.field input[type=number],
+.field select,
+.field textarea{
+  width:100%;
+  background:#010602;
+  border:1px solid var(--panel-border);
+  color:var(--green);
+  font-family:inherit;
+  font-size:13px;
+  padding:10px 12px;
+  border-radius:6px;
+  outline:none;
+  transition:border-color .15s, box-shadow .15s;
+}
+.field input::placeholder{color:#235c35;}
+.field input:focus, .field select:focus, .field textarea:focus{
+  border-color:var(--green);
+  box-shadow:0 0 10px rgba(0,255,102,0.25);
+}
+.field.checkbox-row{
+  display:flex;align-items:center;gap:10px;
+}
+.field.checkbox-row input{width:16px;height:16px;accent-color:var(--green);cursor:pointer;}
+.field.checkbox-row label{margin:0;cursor:pointer;}
+
+/* preview box */
+.cmd-box{
+  background:#010602;
+  border:1px solid var(--green-dim);
+  border-radius:6px;
+  padding:14px;
+  font-size:13px;
+  word-break:break-all;
+  min-height:50px;
+  color:var(--green);
+  position:relative;
+  box-shadow:inset 0 0 20px rgba(0,255,102,0.04);
+}
+.cmd-box .prompt-prefix{color:var(--amber);margin-right:8px;}
+.cmd-actions{
+  display:flex;gap:12px;margin-top:14px;
+}
+button.btn{
+  font-family:inherit;
+  background:transparent;
+  border:1px solid var(--green);
+  color:var(--green);
+  padding:10px 20px;
+  font-size:12px;
+  letter-spacing:1px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:all .15s;
+  font-weight:bold;
+}
+button.btn:hover{
+  background:var(--green);
+  color:var(--bg);
+  box-shadow:0 0 16px var(--green-glow);
+}
+button.btn.ghost{
+  border-color:var(--panel-border);
+  color:var(--text-dim);
+}
+button.btn.ghost:hover{
+  border-color:var(--text-dim);
+  background:transparent;
+  color:var(--green);
+  box-shadow:none;
+}
+button.btn.danger{border-color:var(--red);color:var(--red);}
+button.btn.danger:hover{background:var(--red);color:#000;box-shadow:0 0 14px rgba(255,59,59,0.5);}
+button.btn:disabled{opacity:0.35;cursor:not-allowed;}
+button.btn:disabled:hover{background:transparent;color:var(--green);box-shadow:none;}
+
+/* terminal */
+.terminal-wrap{
+  grid-column:1/-1;
+}
+.terminal{
+  background:#010302;
+  border:1px solid var(--green-dim);
+  border-radius:8px;
+  overflow:hidden;
+  box-shadow:0 0 30px rgba(0,255,102,0.06);
+}
+.terminal .term-bar{
+  background:#041808;
+  border-bottom:1px solid var(--panel-border);
+  padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.term-bar .dots{display:flex;gap:6px;}
+.term-bar .dots span{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.term-bar .dots span:nth-child(1){background:#ff5f56;}
+.term-bar .dots span:nth-child(2){background:#ffbd2e;}
+.term-bar .dots span:nth-child(3){background:#27c93f;}
+.term-bar .title{font-size:11px;color:var(--text-dim);letter-spacing:1px;}
+.term-body{
+  padding:18px;
+  height:380px;
+  overflow-y:auto;
+  font-size:12.5px;
+  line-height:1.6;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+.term-body::-webkit-scrollbar{width:8px;}
+.term-body::-webkit-scrollbar-thumb{background:var(--green-dim);border-radius:4px;}
+.term-line{opacity:0;animation:fadeIn .15s forwards;}
+@keyframes fadeIn{to{opacity:1;}}
+.term-line.ok{color:var(--green);}
+.term-line.warn{color:var(--amber);}
+.term-line.err{color:var(--red);}
+.term-line.info{color:var(--text-dim);}
+.term-line.hl{color:#9dffc5;font-weight:bold;}
+
+.run-status{
+  display:flex;align-items:center;gap:10px;
+  font-size:11px;color:var(--text-dim);
+  margin-top:12px;
+}
+.run-status .spin{
+  width:12px;height:12px;border:2px solid var(--green-dim);
+  border-top-color:var(--green);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--panel);
+  border:1px solid var(--green);
+  color:var(--green);
+  padding:12px 20px;
+  border-radius:6px;
+  font-size:12px;
+  box-shadow:0 0 20px rgba(0,255,102,0.3);
+  z-index:10;
+  opacity:0;
+  transform:translateY(10px);
+  transition:all .25s ease;
+  pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateY(0);}
+
+footer{
+  text-align:center;
+  padding:16px;
+  font-size:10.5px;
+  color:#1d5c34;
+  border-top:1px solid var(--panel-border);
+  background:rgba(2,10,4,0.5);
+}
+
+@media(max-width:600px){
+  main{padding:16px;}
+  header{padding:14px 16px;}
+  .brand .logo{font-size:20px;}
+}
+</style>
+<canvas id="matrix"></canvas>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="logo">TOOL<span>FUZZ</span></div>
+      <div class="tag">LOCAL TOOL RUNNER</div>
+    </div>
+    <div class="status-line">
+      <div id="backendStatus" class="badge-backend disconnected" title="Estado de conexión con server.py">
+        <span class="dot" style="background:var(--amber); box-shadow:0 0 6px var(--amber);"></span>CONECTANDO CON BACKEND
+      </div>
+      <span><span class="dot"></span>CORE ONLINE</span>
+      <span id="clock">00:00:00</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb">
+      <button onclick="goHome()">root@toolfuzz</button>
+      <span>/</span>
+      <span class="active" id="crumbCurrent">herramientas</span>
+    </div>
+
+    <!-- HOME GRID -->
+    <section id="homeView">
+      <div class="search-row">
+        <span class="prompt">&gt;</span>
+        <input type="text" id="searchInput" placeholder="buscar herramienta... (nmap, whois, rustscan, masscan, gobuster, whatweb, arp)" oninput="renderHomeGrid(this.value)">
+        <span class="count" id="resultCount"></span>
+      </div>
+      <div id="categoryContainer"></div>
+    </section>
+
+    <!-- TOOL VIEW (dynamic) -->
+    <section class="tool-view" id="toolView">
+      <div class="tool-header">
+        <div class="icon" id="twIcon">⚡</div>
+        <div>
+          <h2 id="twName">TOOL</h2>
+          <p id="twDesc">descripción</p>
+        </div>
+      </div>
+
+      <div class="tabs" id="cmdTabs"></div>
+      <div class="catalog-notice" id="catalogOnlyNotice" style="display:none;"></div>
+
+      <div class="workspace">
+        <div class="panel">
+          <h4>PARÁMETROS DE EJECUCIÓN</h4>
+          <div id="fieldsContainer"></div>
+        </div>
+
+        <div class="panel">
+          <h4>VISTA PREVIA DEL COMANDO</h4>
+          <div class="cmd-box"><span class="prompt-prefix">$</span><span id="cmdPreview">esperando parámetros...</span></div>
+          <div class="cmd-actions">
+            <button class="btn" id="runBtn" onclick="executeCommand()">▶ EJECUTAR</button>
+            <button class="btn ghost" onclick="copyCommand()">⧉ COPIAR</button>
+            <button class="btn danger" id="stopBtn" style="display:none;" onclick="stopCommand()">■ DETENER</button>
+          </div>
+          <div class="run-status" id="runStatus" style="display:none;">
+            <span class="spin"></span> <span id="runStatusText">ejecutando en binario...</span>
+          </div>
+        </div>
+
+        <div class="terminal-wrap">
+          <div class="terminal">
+            <div class="term-bar">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <div class="title" id="termTitle">bash — toolfuzz@kali</div>
+              <button class="btn ghost" style="padding:4px 10px;font-size:10px;" onclick="clearConsole()">LIMPIAR</button>
+            </div>
+            <div class="term-body" id="termBody"><div class="term-line info">// consola lista. Los comandos se ejecutan mediante server.py.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    ToolFuzz :: Frontend conectado a server.py y comands.py. Ejecuta comandos reales con binarios disponibles localmente.
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   MATRIX RAIN BACKGROUND
+   ========================================================= */
+(function(){
+  const canvas = document.getElementById('matrix');
+  const ctx = canvas.getContext('2d');
+  let w, h, cols, drops;
+  const chars = "アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$#%&+-<>\\/";
+  const fontSize = 15;
+
+  function resize(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+    cols = Math.floor(w / fontSize);
+    drops = new Array(cols).fill(1);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function draw(){
+    ctx.fillStyle = 'rgba(3,7,4,0.08)';
+    ctx.fillRect(0,0,w,h);
+    ctx.font = fontSize + 'px monospace';
+    for(let i=0;i<drops.length;i++){
+      const text = chars[Math.floor(Math.random()*chars.length)];
+      const x = i*fontSize;
+      const y = drops[i]*fontSize;
+      const grad = Math.random();
+      ctx.fillStyle = grad > 0.95 ? '#c8ffde' : (grad > 0.8 ? '#33ff85' : '#008f3a');
+      ctx.fillText(text, x, y);
+      if(y > h && Math.random() > 0.975){
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+  }
+  setInterval(draw, 45);
+})();
+
+/* clock */
+function tickClock(){
+  const d = new Date();
+  document.getElementById('clock').textContent = d.toTimeString().split(' ')[0];
+}
+setInterval(tickClock,1000); tickClock();
+
+/* =========================================================
+   CONFIGURACIÓN Y CONEXIÓN CON BACKEND (server.py)
+   ========================================================= */
+const BACKEND_URL = '/api';
+
+/* =========================================================
+   CATÁLOGO COMPLETO DE LAS 26 HERRAMIENTAS (5 CATEGORÍAS)
+   ========================================================= */
+const CATEGORIES = {
+  osint:   { label:"1. Reconocimiento y OSINT",              icon:"🔎", desc:"Inteligencia de fuentes abiertas: correos, subdominios, WHOIS" },
+  network: { label:"2. Escaneo de Red y Puertos",             icon:"🌐", desc:"Descubrimiento de hosts, puertos y servicios" },
+  webfuzz: { label:"3. Fuzzing y Enumeración Web",            icon:"📂", desc:"Directorios, parámetros, vhosts y tecnologías web" },
+  vuln:    { label:"4. Escáneres de Vulnerabilidades",        icon:"🛡️", desc:"Detección y explotación de vulnerabilidades específicas" },
+  creds:   { label:"5. Auditoría de Credenciales y Fuerza Bruta", icon:"🔑", desc:"Cracking de hashes y fuerza bruta de login" }
+};
+
+const TOOLS = {
+  theharvester: { name: 'theHarvester', icon: '✉️', category: 'osint', binary: 'theHarvester', desc: 'Recopilación de correos, subdominios y empleados desde fuentes públicas' },
+  amass: { name: 'Amass', icon: '🕸️', category: 'osint', binary: 'amass', desc: 'Mapeo profundo de superficie de ataque y enumeración de subdominios' },
+  subfinder: { name: 'Subfinder', icon: '🧭', category: 'osint', binary: 'subfinder', desc: 'Descubrimiento rápido de subdominios pasivos' },
+  dnsenum: { name: 'DNSenum', icon: '🗂️', category: 'osint', binary: 'dnsenum', desc: 'Enumeración de registros DNS y transferencias de zona' },
+  dnsrecon: { name: 'DNSrecon', icon: '🗂️', category: 'osint', binary: 'dnsrecon', desc: 'Enumeración DNS, fuerza bruta y registros de dominio' },
+  whois: { name: 'Whois', icon: '📜', category: 'osint', binary: 'whois', desc: 'Consulta de registro de dominios y propietarios' },
+  nmap: { name: 'Nmap', icon: '🛰️', category: 'network', binary: 'nmap', desc: 'El estándar de la industria para descubrimiento de hosts y puertos' },
+  masscan: { name: 'Masscan', icon: '⚡', category: 'network', binary: 'masscan', desc: 'Escáner de puertos TCP a velocidad extrema' },
+  rustscan: { name: 'RustScan', icon: '🦀', category: 'network', binary: 'rustscan', desc: 'Escáner ultrarrápido escrito en Rust que alimenta a Nmap' },
+  "arp-scan": { name: 'arp-scan', icon: '📡', category: 'network', binary: 'arp-scan', desc: 'Descubrimiento de dispositivos en la red local mediante ARP' },
+  netcat: { name: 'Netcat (nc)', icon: '🧰', category: 'network', binary: 'nc', desc: 'Utilidad versátil de red para conexiones TCP/UDP' },
+  gobuster: { name: 'Gobuster', icon: '📂', category: 'webfuzz', binary: 'gobuster', desc: 'Fuerza bruta de directorios, archivos, vhosts y DNS' },
+  ffuf: { name: 'ffuf', icon: '🚀', category: 'webfuzz', binary: 'ffuf', desc: 'Fuzzer web en Go increíblemente rápido' },
+  dirsearch: { name: 'Dirsearch', icon: '🔍', category: 'webfuzz', binary: 'dirsearch', desc: 'Herramienta avanzada de fuerza bruta de rutas web' },
+  wfuzz: { name: 'Wfuzz', icon: '🔀', category: 'webfuzz', binary: 'wfuzz', desc: 'Fuzzer web para inyecciones, parámetros y directorios' },
+  nikto: { name: 'Nikto', icon: '🕷️', category: 'webfuzz', binary: 'nikto', desc: 'Escáner de vulnerabilidades en servidores web' },
+  whatweb: { name: 'WhatWeb', icon: '🌐', category: 'webfuzz', binary: 'whatweb', desc: 'Identificador de tecnologías web' },
+  wpscan: { name: 'WPScan', icon: '🛡️', category: 'vuln', binary: 'wpscan', desc: 'Escáner de vulnerabilidades para WordPress' },
+  sqlmap: { name: 'SQLMap', icon: '💉', category: 'vuln', binary: 'sqlmap', desc: 'Detección y explotación automatizada de SQLi' },
+  commix: { name: 'Commix', icon: '💻', category: 'vuln', binary: 'commix', desc: 'Automatización para inyección de comandos en OS' },
+  nuclei: { name: 'Nuclei', icon: '☢️', category: 'vuln', binary: 'nuclei', desc: 'Escáner rápido basado en plantillas YAML' },
+  hydra: { name: 'Hydra', icon: '🐍', category: 'creds', binary: 'hydra', desc: 'Fuerza bruta de inicio de sesión altamente paralelo' },
+  john: { name: 'John the Ripper', icon: '🔓', category: 'creds', binary: 'john', desc: 'Descifrador de hashes offline' },
+  hashcat: { name: 'Hashcat', icon: '⚡', category: 'creds', binary: 'hashcat', desc: 'Recuperación avanzada de contraseñas mediante GPU' },
+  medusa: { name: 'Medusa', icon: '🔑', category: 'creds', binary: 'medusa', desc: 'Fuerza bruta paralela y modular' },
+  netexec: { name: 'NetExec / CME', icon: '🏢', category: 'creds', binary: 'netexec', desc: 'Post-explotación para redes corporativas y Active Directory' }
+};
+
+/* =========================================================
+   ESTADO Y GESTIÓN DE UI
+   ========================================================= */
+let currentTool = null;
+let currentCmdIndex = 0;
+let fieldValues = {};
+let isRunning = false;
+let activeRunController = null;
+
+function renderHomeGrid(filter = ''){
+  filter = filter.toLowerCase();
+  const container = document.getElementById('categoryContainer');
+  container.innerHTML = '';
+  let totalVisible = 0;
+
+  Object.keys(CATEGORIES).forEach(catKey => {
+    const cat = CATEGORIES[catKey];
+    const toolKeys = Object.keys(TOOLS).filter(k => TOOLS[k].category === catKey && (
+      TOOLS[k].name.toLowerCase().includes(filter) ||
+      TOOLS[k].desc.toLowerCase().includes(filter) ||
+      k.toLowerCase().includes(filter)
+    ));
+
+    if(toolKeys.length === 0) return;
+    totalVisible += toolKeys.length;
+
+    const block = document.createElement('div');
+    block.className = 'category-block';
+
+    const title = document.createElement('div');
+    title.className = 'category-title';
+    title.innerHTML = `
+      <span class="cat-icon">${cat.icon}</span>
+      <span>${cat.label.toUpperCase()}</span>
+      <span class="cat-count">(${toolKeys.length})</span>
+    `;
+    block.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'tool-grid';
+
+    toolKeys.forEach(key => {
+      const t = TOOLS[key];
+      const card = document.createElement('div');
+      card.className = 'tool-card';
+      card.onclick = () => openTool(key);
+      const badgeClass = t.enabled !== true ? 'catalog-only' : (t.available === false ? 'unavailable' : '');
+      const badgeText = t.enabled !== true ? 'SOLO CATÁLOGO' : (t.available === false ? 'BINARIO NO INSTALADO' : `${t.commands.length} cmd${t.commands.length>1?'s':''}`);
+      card.innerHTML = `
+        <div class="badge ${badgeClass}">${badgeText}</div>
+        <div class="icon">${t.icon}</div>
+        <h3>${t.name}</h3>
+        <p>${t.desc}</p>
+      `;
+      grid.appendChild(card);
+    });
+
+    block.appendChild(grid);
+    container.appendChild(block);
+  });
+
+  if(totalVisible === 0){
+    container.innerHTML = `<div class="no-results">// no se encontraron herramientas coincidentes</div>`;
+  }
+  document.getElementById('resultCount').textContent = `${totalVisible} herramientas`;
+}
+
+function openTool(key){
+  currentTool = key;
+  currentCmdIndex = 0;
+  fieldValues = {};
+
+  const t = TOOLS[key];
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('toolView').classList.add('active');
+  document.getElementById('crumbCurrent').textContent = t.name.toLowerCase();
+
+  document.getElementById('twIcon').textContent = t.icon;
+  document.getElementById('twName').textContent = t.name;
+  document.getElementById('twDesc').textContent = t.enabled !== true
+    ? `${t.desc} — solo catálogo`
+    : (t.available === false ? `${t.desc} — binario no instalado` : t.desc);
+  document.getElementById('termTitle').textContent = `bash — toolfuzz@kali (${t.binary})`;
+
+  const notice = document.getElementById('catalogOnlyNotice');
+  const tabs = document.getElementById('cmdTabs');
+  const workspace = document.querySelector('#toolView .workspace');
+  if(t.enabled !== true){
+    tabs.style.display = 'none';
+    workspace.style.display = 'none';
+    notice.style.display = 'block';
+    notice.replaceChildren();
+    const heading = document.createElement('h4');
+    heading.textContent = 'HERRAMIENTA INFORMATIVA';
+    const description = document.createElement('div');
+    description.textContent = 'Esta herramienta forma parte del catálogo visual, pero no está conectada al backend y no ejecuta comandos.';
+    notice.append(heading, description);
+    if((t.commands || []).length){
+      const list = document.createElement('ul');
+      t.commands.forEach(command => {
+        const item = document.createElement('li');
+        item.textContent = command.label;
+        list.appendChild(item);
+      });
+      notice.appendChild(list);
+    }
+    return;
+  }
+  tabs.style.display = '';
+  workspace.style.display = '';
+  notice.style.display = 'none';
+  renderTabs();
+  selectCommand(0);
+  clearConsole();
+}
+
+function goHome(){
+  currentTool = null;
+  if(activeRunController) activeRunController.abort();
+  document.getElementById('homeView').style.display = 'block';
+  document.getElementById('toolView').classList.remove('active');
+  document.getElementById('crumbCurrent').textContent = 'herramientas';
+}
+
+function renderTabs(){
+  const t = TOOLS[currentTool];
+  const wrap = document.getElementById('cmdTabs');
+  wrap.innerHTML = '';
+  t.commands.forEach((cmd, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (idx === currentCmdIndex ? ' active' : '');
+    btn.textContent = cmd.label.replace(/\{([^}]+)\}/g, (_, field) => fieldValues[field] || `<${field}>`);
+    btn.dataset.commandIndex = idx;
+    btn.onclick = () => selectCommand(idx);
+    wrap.appendChild(btn);
+  });
+}
+
+function selectCommand(idx){
+  currentCmdIndex = idx;
+  fieldValues = {};
+  renderTabs();
+  renderFields();
+  updatePreview();
+}
+
+function renderFields(){
+  const t = TOOLS[currentTool];
+  const cmd = t.commands[currentCmdIndex];
+  const container = document.getElementById('fieldsContainer');
+  container.innerHTML = '';
+
+  cmd.fields.forEach(f => {
+    const wrap = document.createElement('div');
+    wrap.className = (f.type === 'checkbox') ? 'field checkbox-row' : 'field';
+
+    const label = document.createElement('label');
+    label.textContent = f.label + (f.required ? ' *' : '');
+    label.setAttribute('for', 'fld_'+f.id);
+
+    let input;
+    if(f.type === 'select'){
+      input = document.createElement('select');
+      input.id = 'fld_'+f.id;
+      f.options.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt; o.textContent = opt;
+        input.appendChild(o);
+      });
+      if(f.default) input.value = f.default;
+    } else if(f.type === 'checkbox'){
+      input = document.createElement('input');
+      input.type = 'checkbox';
+      input.id = 'fld_'+f.id;
+      if(f.default) input.checked = true;
+    } else {
+      input = document.createElement('input');
+      input.type = (f.type === 'number') ? 'number' : 'text';
+      input.id = 'fld_'+f.id;
+      if(f.placeholder) input.placeholder = f.placeholder;
+      if(f.default !== undefined) input.value = f.default;
+    }
+
+    input.addEventListener('input', updatePreview);
+    input.addEventListener('change', updatePreview);
+
+    if(f.type === 'checkbox'){
+      wrap.appendChild(input);
+      wrap.appendChild(label);
+    } else {
+      wrap.appendChild(label);
+      wrap.appendChild(input);
+    }
+    container.appendChild(wrap);
+
+    fieldValues[f.id] = f.type === 'checkbox' ? !!f.default : (f.default !== undefined ? f.default : '');
+  });
+}
+
+function collectValues(){
+  const t = TOOLS[currentTool];
+  const cmd = t.commands[currentCmdIndex];
+  const vals = {};
+  cmd.fields.forEach(f => {
+    const el = document.getElementById('fld_'+f.id);
+    if(!el) return;
+    if(f.type === 'checkbox'){
+      vals[f.id] = el.checked;
+    } else {
+      vals[f.id] = el.value.trim();
+    }
+  });
+  return vals;
+}
+
+function updatePreview(){
+  const t = TOOLS[currentTool];
+  const cmd = t.commands[currentCmdIndex];
+  const vals = collectValues();
+  fieldValues = vals;
+  document.querySelectorAll('#cmdTabs .tab-btn').forEach(button => {
+    const tabCommand = t.commands[Number(button.dataset.commandIndex)];
+    button.textContent = tabCommand.label.replace(/\{([^}]+)\}/g, (_, field) => vals[field] || `<${field}>`);
+  });
+  let str;
+  try{
+    str = [t.binary, ...cmd.args].map(argument =>
+      argument.replace(/\{([^}]+)\}/g, (_, field) => vals[field] || `<${field}>`)
+    ).join(' ');
+  }catch(e){
+    str = '// completa los campos requeridos';
+  }
+  document.getElementById('cmdPreview').textContent = str;
+
+  const missingRequired = cmd.fields.some(f => f.required && !vals[f.id]);
+  document.getElementById('runBtn').disabled = t.enabled !== true || t.available === false || missingRequired;
+}
+
+function copyCommand(){
+  const text = document.getElementById('cmdPreview').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Comando copiado al portapapeles');
+  }).catch(() => {
+    showToast('No se pudo copiar');
+  });
+}
+
+function showToast(msg){
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+function clearConsole(){
+  document.getElementById('termBody').innerHTML = '<div class="term-line info">// consola lista. ejecuta un comando para ver la salida en streaming.</div>';
+}
+
+function stopCommand(){
+  if(activeRunController) activeRunController.abort();
+}
+
+/* =========================================================
+   EJECUCIÓN REAL MEDIANTE server.py
+   ========================================================= */
+async function executeCommand(){
+  if(isRunning) return;
+  const t = TOOLS[currentTool];
+  if(t.enabled !== true || t.available === false){
+    showToast(t.enabled !== true ? 'Esta herramienta solo está disponible en el catálogo' : 'El binario no está instalado');
+    return;
+  }
+  const cmd = t.commands[currentCmdIndex];
+  const vals = collectValues();
+  if(cmd.fields.some(f => f.required && !vals[f.id])){
+    showToast('Completa los campos requeridos');
+    return;
+  }
+  const cmdStr = cmd.template(vals);
+
+  isRunning = true;
+  activeRunController = new AbortController();
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('stopBtn').style.display = 'inline-block';
+  document.getElementById('runStatus').style.display = 'flex';
+  document.getElementById('runStatusText').textContent = `ejecutando ${t.binary} en el backend local...`;
+
+  const body = document.getElementById('termBody');
+  body.innerHTML = '';
+  appendLine(body, `$ ${cmdStr}`, 'hl');
+  try{
+    const response = await fetch(`${BACKEND_URL}/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept':'text/event-stream' },
+      body: JSON.stringify({tool_id:currentTool, command_id:cmd.id, inputs:vals}),
+      signal:activeRunController.signal
+    });
+    if(!response.ok){
+      let message = `Error HTTP ${response.status}`;
+      try{
+        const detail = await response.json();
+        message = detail.detail || message;
+      }catch(_){}
+      appendLine(body, `[error] ${message}`, 'err');
+      return;
+    }
+    if(!response.body) throw new Error('El navegador no admite streaming de la respuesta.');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let pending = '';
+    while(true){
+      const {value, done} = await reader.read();
+      pending += decoder.decode(value || new Uint8Array(), {stream:!done});
+      const events = pending.split(/\r?\n\r?\n/);
+      pending = events.pop() || '';
+      for(const block of events){
+        const data = block.split(/\r?\n/).find(line => line.startsWith('data:'));
+        if(!data) continue;
+        const event = JSON.parse(data.slice(5).trim());
+        if(event.type === 'output'){
+          appendLine(body, event.text, event.stream === 'stderr' ? 'warn' : 'ok');
+        }else if(event.type === 'error'){
+          appendLine(body, `[error] ${event.message}`, 'err');
+        }else if(event.type === 'exit'){
+          appendLine(body, `[proceso finalizado — código ${event.code}]`, event.code === 0 ? 'ok' : 'err');
+        }
+      }
+      body.scrollTop = body.scrollHeight;
+      if(done) break;
+    }
+  }catch(error){
+    if(error.name === 'AbortError'){
+      appendLine(body, '^C [proceso detenido por el operador]', 'err');
+    }else{
+      appendLine(body, `[error de conexión] No se pudo conectar con el backend local: ${error.message}`, 'err');
+    }
+  }finally{
+    finishRun();
+  }
+}
+
+function finishRun(){
+  isRunning = false;
+  activeRunController = null;
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('stopBtn').style.display = 'none';
+  document.getElementById('runStatus').style.display = 'none';
+}
+
+function appendLine(container, text, cls){
+  const div = document.createElement('div');
+  div.className = 'term-line ' + (cls||'');
+  div.textContent = text;
+  container.appendChild(div);
+}
+
+async function loadBackendTools(){
+  const badge = document.getElementById('backendStatus');
+  try{
+    const response = await fetch(`${BACKEND_URL}/tools`);
+    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+    const config = await response.json();
+    Object.values(TOOLS).forEach(tool => {
+      tool.enabled = false;
+      tool.available = false;
+      tool.commands = [];
+    });
+    config.tools.forEach(tool => {
+      const catalogTool = TOOLS[tool.id] || {};
+      TOOLS[tool.id] = {
+        ...catalogTool,
+        name:tool.name,
+        icon:tool.icon,
+        category:tool.category || catalogTool.category || 'network',
+        binary:tool.binary,
+        enabled:true,
+        available:tool.available,
+        desc:tool.description,
+        commands:(tool.commands || []).map(command => ({
+          id:command.id,
+          label:command.label,
+          fields:command.fields,
+          args:command.args
+        }))
+      };
+    });
+    badge.className = 'badge-backend connected';
+    badge.textContent = 'BACKEND LOCAL CONECTADO';
+  }catch(error){
+    Object.values(TOOLS).forEach(tool => {
+      tool.enabled = false;
+      tool.available = false;
+      tool.commands = [];
+    });
+    badge.className = 'badge-backend disconnected';
+    badge.textContent = 'BACKEND LOCAL DESCONECTADO';
+    showToast(`No se pudo cargar server.py: ${error.message}`);
+  }
+  renderHomeGrid();
+}
+
+window.addEventListener('DOMContentLoaded', loadBackendTools);
+</script>
+</body>
+</html>
