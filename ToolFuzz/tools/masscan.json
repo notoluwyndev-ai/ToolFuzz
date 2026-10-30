@@ -1,0 +1,38 @@
+{
+  "id": "masscan",
+  "name": "Masscan",
+  "icon": "⚡",
+  "description": "Escaneo limitado de redes privadas, hasta 256 direcciones, 256 puertos y 1000 paquetes por segundo.",
+  "binary": "masscan",
+  "commands": [
+    {
+      "id": "masscan_private",
+      "label": "Escaneo limitado de red privada",
+      "args": ["-p", "{ports}", "{target}", "--rate", "{rate}"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "Red IPv4 privada (máximo 256 direcciones)",
+          "type": "text",
+          "placeholder": "192.168.1.0/24",
+          "required": true,
+          "validation": "private_cidr"
+        },
+        {
+          "id": "ports",
+          "label": "Puertos (máximo 256)",
+          "type": "text",
+          "default": "80,443",
+          "validation": "limited_ports"
+        },
+        {
+          "id": "rate",
+          "label": "Paquetes por segundo (máximo 1000)",
+          "type": "number",
+          "default": "100",
+          "validation": "scan_rate"
+        }
+      ]
+    }
+  ]
+}

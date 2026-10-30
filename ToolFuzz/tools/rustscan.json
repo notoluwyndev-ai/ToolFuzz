@@ -1,0 +1,31 @@
+{
+  "id": "rustscan",
+  "name": "RustScan",
+  "icon": "🦀",
+  "description": "Escáner TCP rápido limitado a una IP privada y hasta 256 puertos.",
+  "binary": "rustscan",
+  "commands": [
+    {
+      "id": "rustscan_private",
+      "label": "Escaneo TCP limitado",
+      "args": ["-a", "{target}", "-p", "{ports}", "--", "-sT", "-Pn"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "IP privada objetivo",
+          "type": "text",
+          "placeholder": "192.168.1.10",
+          "required": true,
+          "validation": "private_host"
+        },
+        {
+          "id": "ports",
+          "label": "Puertos (máximo 256)",
+          "type": "text",
+          "default": "1-100",
+          "validation": "limited_ports"
+        }
+      ]
+    }
+  ]
+}

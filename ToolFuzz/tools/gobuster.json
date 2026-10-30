@@ -1,0 +1,31 @@
+{
+  "id": "gobuster",
+  "name": "Gobuster",
+  "icon": "📂",
+  "description": "Descubrimiento de rutas web en un servidor privado autorizado.",
+  "binary": "gobuster",
+  "commands": [
+    {
+      "id": "gobuster_dir",
+      "label": "Descubrimiento de directorios web",
+      "args": ["dir", "-u", "http://{target}", "-w", "{wordlist}"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "IP privada objetivo",
+          "type": "text",
+          "placeholder": "192.168.1.10",
+          "required": true,
+          "validation": "private_host"
+        },
+        {
+          "id": "wordlist",
+          "label": "Ruta de wordlist",
+          "type": "text",
+          "required": true,
+          "validation": "local_file"
+        }
+      ]
+    }
+  ]
+}

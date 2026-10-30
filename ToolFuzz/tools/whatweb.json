@@ -1,0 +1,25 @@
+{
+  "id": "whatweb",
+  "name": "WhatWeb",
+  "icon": "🌐",
+  "description": "Identifica tecnologías web en una URL privada autorizada.",
+  "binary": "ruby",
+  "entrypoint": "whatweb",
+  "commands": [
+    {
+      "id": "whatweb_private",
+      "label": "Identificación de tecnologías web",
+      "args": ["--no-errors", "{url}"],
+      "fields": [
+        {
+          "id": "url",
+          "label": "URL de la web privada",
+          "type": "text",
+          "placeholder": "http://192.168.1.10",
+          "required": true,
+          "validation": "private_url"
+        }
+      ]
+    }
+  ]
+}

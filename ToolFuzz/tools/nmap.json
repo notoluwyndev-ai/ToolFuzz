@@ -1,0 +1,73 @@
+{
+  "id": "nmap",
+  "name": "Nmap",
+  "icon": "🛰️",
+  "description": "Escaneo de puertos y detección de servicios.",
+  "category": "network",
+  "binary": "nmap",
+  "commands": [
+    {
+      "id": "nmap_quick",
+      "label": "Escaneo rápido",
+      "danger": "low",
+      "args": ["-T4", "-F", "{target}"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "IP privada objetivo",
+          "type": "text",
+          "placeholder": "192.168.1.10",
+          "required": true,
+          "validation": "private_host"
+        }
+      ]
+    },
+    {
+      "id": "nmap_full_ports",
+      "label": "Todos los puertos",
+      "danger": "medium",
+      "runtime_seconds": 600,
+      "args": ["-T{timing}", "-p-", "{target}"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "IP privada objetivo",
+          "type": "text",
+          "placeholder": "192.168.1.10",
+          "required": true,
+          "validation": "private_host"
+        },
+        {
+          "id": "timing",
+          "label": "Plantilla de tiempo (-T)",
+          "type": "select",
+          "options": ["0", "1", "2", "3", "4", "5"],
+          "default": "4"
+        }
+      ]
+    },
+    {
+      "id": "nmap_version_scripts",
+      "label": "Versiones y scripts",
+      "danger": "medium",
+      "args": ["-sV", "-sC", "-p", "{ports}", "{target}"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "IP privada objetivo",
+          "type": "text",
+          "placeholder": "192.168.1.10",
+          "required": true,
+          "validation": "private_host"
+        },
+        {
+          "id": "ports",
+          "label": "Puertos",
+          "type": "text",
+          "default": "1-1000",
+          "validation": "ports"
+        }
+      ]
+    }
+  ]
+}

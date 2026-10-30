@@ -1,0 +1,84 @@
+{
+  "id": "hydra",
+  "name": "Hydra",
+  "icon": "💥",
+  "description": "Fuerza bruta rápida contra servicios de red comunes en entornos privados autorizados.",
+  "binary": "hydra",
+  "commands": [
+    {
+      "id": "hydra_ssh_brute",
+      "label": "Ataque SSH agresivo sobre {target}",
+      "args": [
+        "-l",
+        "{user}",
+        "-P",
+        "{wordlist}",
+        "ssh://{target}"
+      ],
+      "fields": [
+        {
+          "id": "target",
+          "label": "IP privada objetivo",
+          "type": "text",
+          "placeholder": "192.168.1.10",
+          "required": true,
+          "validation": "private_host"
+        },
+        {
+          "id": "user",
+          "label": "Usuario a probar",
+          "type": "text",
+          "default": "admin",
+          "required": false
+        },
+        {
+          "id": "wordlist",
+          "label": "Ruta de wordlist local",
+          "type": "text",
+          "placeholder": "/usr/share/wordlists/rockyou.txt",
+          "required": true,
+          "validation": "local_file"
+        }
+      ]
+    },
+    {
+      "id": "hydra_http_post",
+      "label": "Fuerza bruta de login web POST en {target}",
+      "args": [
+        "-l",
+        "{user}",
+        "-P",
+        "{wordlist}",
+        "-vV",
+        "-e",
+        "nsr",
+        "http-post-form://{target}:443/login.php:user={User}&pass={Pass}:Login incorrecto"
+      ],
+      "fields": [
+        {
+          "id": "target",
+          "label": "IP privada objetivo",
+          "type": "text",
+          "placeholder": "192.168.1.10",
+          "required": true,
+          "validation": "private_host"
+        },
+        {
+          "id": "user",
+          "label": "Usuario a probar",
+          "type": "text",
+          "default": "admin",
+          "required": false
+        },
+        {
+          "id": "wordlist",
+          "label": "Ruta de wordlist local",
+          "type": "text",
+          "placeholder": "/usr/share/wordlists/rockyou.txt",
+          "required": true,
+          "validation": "local_file"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "whois",
+  "name": "Whois",
+  "icon": "📜",
+  "description": "Consulta puntual y de solo lectura de los datos públicos de registro de un dominio.",
+  "binary": "whois",
+  "commands": [
+    {
+      "id": "whois_lookup",
+      "label": "Consultar el registro WHOIS del dominio",
+      "args": ["-accepteula", "{domain}"],
+      "fields": [
+        {
+          "id": "domain",
+          "label": "Nombre de dominio",
+          "type": "text",
+          "placeholder": "example.com",
+          "required": true,
+          "validation": "domain"
+        }
+      ]
+    }
+  ]
+}
