@@ -115,6 +115,16 @@ main{
   text-decoration:underline;padding:0;
 }
 .breadcrumb button:hover{color:var(--green);}
+.consent-notice{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 16px;
+  color:var(--text-dim);
+  background:rgba(255,191,0,0.06);
+  border:1px solid rgba(255,191,0,0.35);
+  border-radius:8px;
+  font-size:12px;line-height:1.55;
+}
+.consent-notice strong{color:var(--amber);white-space:nowrap;}
 
 /* ---------- SEARCH & FILTERS ---------- */
 .search-row{
@@ -439,24 +449,24 @@ button.btn:disabled:hover{background:transparent;color:var(--green);box-shadow:n
   pointer-events:none;
 }
 .toast.show{opacity:1;transform:translateY(0);}
-dialog.risk-dialog{
+dialog.run-confirm-dialog{
   width:min(560px,calc(100vw - 32px));
   max-height:calc(100vh - 32px);
   margin:auto;
   padding:24px;
   color:var(--text);
   background:var(--panel);
-  border:1px solid var(--red);
+  border:1px solid var(--amber);
   border-radius:8px;
-  box-shadow:0 0 32px rgba(255,59,59,0.22);
+  box-shadow:0 0 32px rgba(255,191,0,0.16);
 }
-dialog.risk-dialog::backdrop{
+dialog.run-confirm-dialog::backdrop{
   background:rgba(0,0,0,0.78);
   backdrop-filter:blur(3px);
 }
-.risk-dialog h2{margin:0 0 12px;color:var(--red);font-size:16px;}
-.risk-dialog p{font-size:13px;line-height:1.55;color:var(--text-dim);}
-.risk-dialog .risk-command{
+.run-confirm-dialog h2{margin:0 0 12px;color:var(--amber);font-size:16px;}
+.run-confirm-dialog p{font-size:13px;line-height:1.55;color:var(--text-dim);}
+.run-confirm-dialog .run-command{
   max-height:180px;
   overflow:auto;
   padding:12px;
@@ -468,7 +478,7 @@ dialog.risk-dialog::backdrop{
   white-space:pre-wrap;
   overflow-wrap:anywhere;
 }
-.risk-dialog .risk-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+.run-confirm-dialog .run-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
 
 footer{
   text-align:center;
@@ -508,6 +518,11 @@ footer{
       <span>/</span>
       <span class="active" id="crumbCurrent">herramientas</span>
     </div>
+
+    <aside class="consent-notice" aria-label="Uso autorizado">
+      <strong>USO AUTORIZADO</strong>
+      <span>Utiliza estas herramientas únicamente en sistemas cuyo propietario te haya dado permiso. Antes de cada ejecución confirmarás que tienes autorización para analizar el objetivo.</span>
+    </aside>
 
     <!-- HOME GRID -->
     <section id="homeView">
@@ -570,14 +585,14 @@ footer{
 </div>
 
 <div class="toast" id="toast"></div>
-<dialog id="riskConfirmDialog" class="risk-dialog" aria-labelledby="riskDialogTitle" aria-describedby="riskDialogDescription">
-  <h2 id="riskDialogTitle">Confirmar comando de alto riesgo</h2>
-  <p id="riskDialogDescription">Revisa la acción y su objetivo. Continúa únicamente si tienes autorización para realizar esta prueba.</p>
-  <p><strong id="riskCommandLabel"></strong></p>
-  <pre class="risk-command" id="riskCommandPreview"></pre>
-  <div class="risk-actions">
-    <button class="btn ghost" id="riskCancelBtn" type="button">Cancelar</button>
-    <button class="btn danger" id="riskConfirmBtn" type="button">Confirmar y ejecutar</button>
+<dialog id="runConfirmDialog" class="run-confirm-dialog" aria-labelledby="runDialogTitle" aria-describedby="runDialogDescription">
+  <h2 id="runDialogTitle">¿Seguro que quieres ejecutar este comando?</h2>
+  <p id="runDialogDescription">Revisa el comando y su objetivo. Al confirmar declaras que tienes autorización expresa para realizar este análisis en ese sistema.</p>
+  <p><strong id="runCommandLabel"></strong></p>
+  <pre class="run-command" id="runCommandPreview"></pre>
+  <div class="run-actions">
+    <button class="btn ghost" id="runCancelBtn" type="button">Cancelar</button>
+    <button class="btn" id="runConfirmBtn" type="button">Sí, tengo autorización y ejecutar</button>
   </div>
 </dialog>
 
@@ -952,27 +967,27 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
-function confirmHighRiskRun(toolName, commandLabel, commandPreview) {
-  const dialog = document.getElementById('riskConfirmDialog');
+function confirmAuthorizedRun(toolName, commandLabel, commandPreview) {
+  const dialog = document.getElementById('runConfirmDialog');
   if (typeof dialog.showModal !== 'function') {
     return Promise.resolve(
       window.confirm(
-        `Vas a ejecutar "${commandLabel}" con ${toolName}.\n\n${commandPreview}\n\nConfirma solo si tienes autorización para evaluar este objetivo.`
+        `¿Seguro que quieres ejecutar "${commandLabel}" con ${toolName}?\n\n${commandPreview}\n\nAl continuar confirmas que tienes autorización expresa para analizar este objetivo.`
       )
     );
   }
   if (dialog.open) return Promise.resolve(false);
 
-  document.getElementById('riskCommandLabel').textContent = `${toolName} — ${commandLabel}`;
-  document.getElementById('riskCommandPreview').textContent = commandPreview;
+  document.getElementById('runCommandLabel').textContent = `${toolName} — ${commandLabel}`;
+  document.getElementById('runCommandPreview').textContent = commandPreview;
   dialog.returnValue = '';
 
   return new Promise((resolve) => {
     dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
-    document.getElementById('riskCancelBtn').onclick = () => dialog.close('cancel');
-    document.getElementById('riskConfirmBtn').onclick = () => dialog.close('confirm');
+    document.getElementById('runCancelBtn').onclick = () => dialog.close('cancel');
+    document.getElementById('runConfirmBtn').onclick = () => dialog.close('confirm');
     dialog.showModal();
-    document.getElementById('riskCancelBtn').focus();
+    document.getElementById('runCancelBtn').focus();
   });
 }
 
@@ -1002,10 +1017,7 @@ async function executeCommand() {
     return;
   }
   const cmdStr = buildPreviewString(t.binary, cmd.args, vals);
-  if (
-    String(cmd.danger || '').toLowerCase() === 'high' &&
-    !(await confirmHighRiskRun(t.name, cmd.label, cmdStr))
-  ) {
+  if (!(await confirmAuthorizedRun(t.name, cmd.label, cmdStr))) {
     return;
   }
 

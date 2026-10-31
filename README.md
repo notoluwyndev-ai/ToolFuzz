@@ -34,8 +34,10 @@ python server.py
 
 Abre <http://127.0.0.1:8000>. ToolFuzz no instala herramientas. Ejecuta
 comprobaciones únicamente en sistemas y redes para los que tengas
-autorización; los comandos con riesgo alto requieren confirmación en la
-interfaz y las validaciones del servidor siguen aplicándose.
+autorización; cada ejecución solicita confirmación explícita. Las consultas
+WHOIS admiten dominios e IP públicas. Los escaneos activos de red y web
+siguen limitados por las validaciones del servidor a destinos privados,
+loopback o link-local.
 
 Los scripts opcionales se buscan por defecto en
 `~/.local/share/toolfuzz/scripts`. Para cambiar la ubicación, define
