@@ -439,6 +439,36 @@ button.btn:disabled:hover{background:transparent;color:var(--green);box-shadow:n
   pointer-events:none;
 }
 .toast.show{opacity:1;transform:translateY(0);}
+dialog.risk-dialog{
+  width:min(560px,calc(100vw - 32px));
+  max-height:calc(100vh - 32px);
+  margin:auto;
+  padding:24px;
+  color:var(--text);
+  background:var(--panel);
+  border:1px solid var(--red);
+  border-radius:8px;
+  box-shadow:0 0 32px rgba(255,59,59,0.22);
+}
+dialog.risk-dialog::backdrop{
+  background:rgba(0,0,0,0.78);
+  backdrop-filter:blur(3px);
+}
+.risk-dialog h2{margin:0 0 12px;color:var(--red);font-size:16px;}
+.risk-dialog p{font-size:13px;line-height:1.55;color:var(--text-dim);}
+.risk-dialog .risk-command{
+  max-height:180px;
+  overflow:auto;
+  padding:12px;
+  color:var(--green);
+  background:#010602;
+  border:1px solid var(--green-dim);
+  border-radius:6px;
+  font:12px/1.5 monospace;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.risk-dialog .risk-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
 
 footer{
   text-align:center;
@@ -540,6 +570,16 @@ footer{
 </div>
 
 <div class="toast" id="toast"></div>
+<dialog id="riskConfirmDialog" class="risk-dialog" aria-labelledby="riskDialogTitle" aria-describedby="riskDialogDescription">
+  <h2 id="riskDialogTitle">Confirmar comando de alto riesgo</h2>
+  <p id="riskDialogDescription">Revisa la acción y su objetivo. Continúa únicamente si tienes autorización para realizar esta prueba.</p>
+  <p><strong id="riskCommandLabel"></strong></p>
+  <pre class="risk-command" id="riskCommandPreview"></pre>
+  <div class="risk-actions">
+    <button class="btn ghost" id="riskCancelBtn" type="button">Cancelar</button>
+    <button class="btn danger" id="riskConfirmBtn" type="button">Confirmar y ejecutar</button>
+  </div>
+</dialog>
 
 <script>
 /* =========================================================
@@ -901,6 +941,30 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
+function confirmHighRiskRun(toolName, commandLabel, commandPreview) {
+  const dialog = document.getElementById('riskConfirmDialog');
+  if (typeof dialog.showModal !== 'function') {
+    return Promise.resolve(
+      window.confirm(
+        `Vas a ejecutar "${commandLabel}" con ${toolName}.\n\n${commandPreview}\n\nConfirma solo si tienes autorización para evaluar este objetivo.`
+      )
+    );
+  }
+  if (dialog.open) return Promise.resolve(false);
+
+  document.getElementById('riskCommandLabel').textContent = `${toolName} — ${commandLabel}`;
+  document.getElementById('riskCommandPreview').textContent = commandPreview;
+  dialog.returnValue = '';
+
+  return new Promise((resolve) => {
+    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
+    document.getElementById('riskCancelBtn').onclick = () => dialog.close('cancel');
+    document.getElementById('riskConfirmBtn').onclick = () => dialog.close('confirm');
+    dialog.showModal();
+    document.getElementById('riskCancelBtn').focus();
+  });
+}
+
 function clearConsole() {
   document.getElementById('termBody').innerHTML =
     '<div class="term-line info">// consola lista. ejecuta un comando para ver la salida en streaming.</div>';
@@ -929,9 +993,7 @@ async function executeCommand() {
   const cmdStr = buildPreviewString(t.binary, cmd.args, vals);
   if (
     String(cmd.danger || '').toLowerCase() === 'high' &&
-    !window.confirm(
-      `Vas a ejecutar "${cmd.label}" con ${t.name}.\n\n${cmdStr}\n\nConfirma solo si tienes autorización para evaluar este objetivo.`
-    )
+    !(await confirmHighRiskRun(t.name, cmd.label, cmdStr))
   ) {
     return;
   }
