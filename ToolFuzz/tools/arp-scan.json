@@ -1,16 +1,27 @@
 {
   "id": "arp-scan",
-  "name": "ARP (tabla local)",
+  "name": "ARP Scan",
   "icon": "📡",
   "category": "network",
-  "description": "Muestra las entradas ARP que Windows ya conoce; no realiza un barrido activo.",
-  "binary": "arp",
+  "description": "Descubrimiento ARP activo limitado a redes privadas IPv4 de hasta 256 direcciones.",
+  "binary": "arp-scan",
   "commands": [
     {
-      "id": "arp_table",
-      "label": "Consultar la tabla ARP local",
-      "args": ["-a"],
-      "fields": []
+      "id": "arp_scan_private",
+      "label": "Descubrir dispositivos en una red privada",
+      "danger": "medium",
+      "args": ["{target}"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "Red IPv4 privada (máximo 256 direcciones)",
+          "type": "text",
+          "placeholder": "192.168.1.0/24",
+          "required": true,
+          "validation": "private_cidr",
+          "max_addresses": 256
+        }
+      ]
     }
   ]
 }

@@ -9,6 +9,7 @@
     {
       "id": "hydra_ssh_brute",
       "label": "Ataque SSH agresivo sobre {target}",
+      "danger": "high",
       "args": [
         "-l",
         "{user}",
@@ -45,6 +46,7 @@
     {
       "id": "hydra_http_post",
       "label": "Fuerza bruta de login web POST en {target}",
+      "danger": "high",
       "args": [
         "-l",
         "{user}",

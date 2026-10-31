@@ -591,9 +591,6 @@ setInterval(tickClock,1000); tickClock();
 /* =========================================================
    CONFIGURACIÓN Y CONEXIÓN CON BACKEND (server.py)
    ========================================================= */
-/* =========================================================
-   CONFIGURACIÓN Y CONEXIÓN CON BACKEND (server.py)
-   ========================================================= */
 const BACKEND_URL = '/api';
 
 /* =========================================================
@@ -920,6 +917,14 @@ async function executeCommand() {
     return;
   }
   const cmdStr = buildPreviewString(t.binary, cmd.args, vals);
+  if (
+    String(cmd.danger || '').toLowerCase() === 'high' &&
+    !window.confirm(
+      `Vas a ejecutar "${cmd.label}" con ${t.name}.\n\n${cmdStr}\n\nConfirma solo si tienes autorización para evaluar este objetivo.`
+    )
+  ) {
+    return;
+  }
 
   isRunning = true;
   activeRunController = new AbortController();

@@ -9,7 +9,7 @@
     {
       "id": "whois_lookup",
       "label": "Consultar el registro WHOIS del dominio",
-      "args": ["-accepteula", "{domain}"],
+      "args": ["{domain}"],
       "fields": [
         {
           "id": "domain",

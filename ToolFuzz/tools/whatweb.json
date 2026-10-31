@@ -4,8 +4,7 @@
   "icon": "🌐",
   "category": "webfuzz",
   "description": "Identifica tecnologías web en una URL privada autorizada.",
-  "binary": "ruby",
-  "entrypoint": "whatweb",
+  "binary": "whatweb",
   "commands": [
     {
       "id": "whatweb_private",

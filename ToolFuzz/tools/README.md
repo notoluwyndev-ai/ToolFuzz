@@ -45,7 +45,7 @@ siguen funcionando con normalidad.
 | `label`           | string  | sí          | Texto de la pestaña (1–160 caracteres). Puede incluir `{campo}` para interpolar valores en vivo. |
 | `args`            | array[string] | sí    | Argumentos del binario, en orden, como lista (nunca una cadena de shell). Cada elemento puede contener `{campo}` para sustituir el valor de un `fields[].id`. |
 | `fields`          | array   | no          | Campos de entrada del formulario (ver abajo). Vacío = comando sin parámetros. |
-| `danger`          | string  | no          | Etiqueta informativa (`low`/`medium`/`high`…); no afecta a la ejecución.    |
+| `danger`          | string  | no          | Riesgo informativo (`low`/`medium`/`high`); `high` requiere confirmación explícita en la interfaz antes de ejecutar. |
 | `runtime_seconds` | integer | no          | Tiempo máximo antes de cancelar el proceso. Por defecto y como máximo absoluto: 900 s (`MAX_RUNTIME_SECONDS`). |
 
 Todo nombre `{campo}` usado en `args` o `label` **debe** existir como
@@ -90,6 +90,10 @@ código nuevo:
 Si un campo no indica `validation` ni `pattern`, solo se aplican las
 comprobaciones genéricas (longitud máxima, sin saltos de línea ni bytes
 nulos, obligatoriedad, y pertenencia a `options` si es `select`).
+
+La carpeta de scripts opcionales es `~/.local/share/toolfuzz/scripts` en
+Linux. Se puede cambiar con la variable de entorno
+`TOOLFUZZ_SCRIPTS_DIR`; los entrypoints siguen restringidos a esa carpeta.
 
 ## Ejemplo mínimo
 

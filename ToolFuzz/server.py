@@ -26,7 +26,12 @@ from pydantic import BaseModel, ConfigDict, Field
 BASE_DIR = Path(__file__).resolve().parent
 TOOLS_DIR = BASE_DIR / "tools"
 INDEX_PATH = BASE_DIR / "index.html"
-SCRIPTS_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "Programs" / "ToolFuzz"
+SCRIPTS_DIR = Path(
+    os.environ.get(
+        "TOOLFUZZ_SCRIPTS_DIR",
+        Path.home() / ".local" / "share" / "toolfuzz" / "scripts",
+    )
+).expanduser()
 
 MAX_RUNTIME_SECONDS = 15 * 60
 MAX_CONCURRENT_PROCESSES = 2
