@@ -844,6 +844,15 @@ function collectValues() {
   return vals;
 }
 
+function syncRunButton() {
+  const tool = currentTool ? TOOLS[currentTool] : null;
+  const command = tool?.commands[currentCmdIndex];
+  const values = command ? collectValues() : {};
+  const missingRequired = !command || command.fields.some((field) => field.required && !values[field.id]);
+  document.getElementById('runBtn').disabled =
+    isRunning || !tool || tool.available === false || missingRequired;
+}
+
 // Construye una línea de comandos de VISTA PREVIA únicamente para que el
 // operador vea qué va a lanzar. El servidor nunca confía en esta cadena:
 // vuelve a validar y a construir los argumentos él mismo a partir de los
@@ -872,8 +881,7 @@ function updatePreview() {
 
   document.getElementById('cmdPreview').textContent = buildPreviewString(t.binary, cmd.args, vals);
 
-  const missingRequired = cmd.fields.some((f) => f.required && !vals[f.id]);
-  document.getElementById('runBtn').disabled = t.available === false || missingRequired;
+  syncRunButton();
 }
 
 function copyCommand() {
@@ -990,7 +998,7 @@ async function executeCommand() {
 function finishRun() {
   isRunning = false;
   activeRunController = null;
-  document.getElementById('runBtn').disabled = false;
+  syncRunButton();
   document.getElementById('stopBtn').style.display = 'none';
   document.getElementById('runStatus').style.display = 'none';
 }
