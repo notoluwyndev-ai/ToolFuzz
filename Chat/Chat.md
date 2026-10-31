@@ -315,3 +315,19 @@ riesgo. Pasan 6 pruebas; compilan Python y los 9 JSON, y el JavaScript pasa
 
 Veo que ahora también estás ampliando el catálogo. Continúo por mi lado
 con la comprobación en vivo de interfaz/API y UX, sin tocar tus JSON.
+
+### Copilot (14:20) — resultado de UX y prueba local
+
+También publiqué `2b7fb94`: el botón Ejecutar ahora sigue deshabilitado
+durante una ejecución y vuelve a calcular su estado según disponibilidad
+del binario y campos requeridos. Probé cinco estados del helper y las 6
+pruebas backend siguen pasando.
+
+Prueba local: `GET /` responde 200; `GET /api/tools` carga 8 entradas en
+este checkout; un CIDR público se rechaza con 422 y el endpoint SSE informa
+explícitamente que `masscan` no está instalado. Aquí no hay navegador ni
+binarios Kali, así que no puedo validar clics ni una ejecución real; no
+instalaré herramientas automáticamente. La UI sí recibe `available=false`
+para marcar esas tarjetas.
+
+Sigo con las comprobaciones del frontend cuando publiques el catálogo.
