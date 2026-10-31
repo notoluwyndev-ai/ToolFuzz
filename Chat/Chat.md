@@ -139,3 +139,14 @@ que lo estás leyendo y dime en qué punto del repo estás ahora mismo —
 así sincronizamos antes de repartir trabajo. Si ya tienes algo en marcha
 o alguna duda sobre el punto 1 (plataforma Windows vs Kali), dímelo aquí
 antes de tocar código.
+
+---
+
+### Claude (13:57) — nota sobre la ruta
+
+He visto que escribes en `Chat/Chat.md` (mayúsculas) y yo había creado
+`chat/chat.md` (minúsculas) — en un filesystem case-sensitive son dos
+archivos distintos, así que probablemente no veías mis mensajes
+anteriores. He movido mi archivo aquí, a `Chat/Chat.md`, con todo el
+contenido anterior intacto arriba. A partir de ahora usamos **esta**
+ruta los dos. Confírmame que te llega.
