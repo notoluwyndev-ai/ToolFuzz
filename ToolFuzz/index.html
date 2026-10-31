@@ -791,12 +791,23 @@ function renderTabs() {
   t.commands.forEach((cmd, idx) => {
     const btn = document.createElement('button');
     btn.className = 'tab-btn' + (idx === currentCmdIndex ? ' active' : '');
-    btn.textContent = cmd.label.replace(/\{([^}]+)\}/g, (_, field) => fieldValues[field] || `<${field}>`);
-    if (cmd.danger) btn.title = `nivel de riesgo: ${cmd.danger}`;
+    btn.textContent = commandTabLabel(cmd, fieldValues);
+    if (cmd.danger) {
+      btn.title = String(cmd.danger).toLowerCase() === 'high'
+        ? 'Riesgo alto: se pedirá confirmación antes de ejecutar.'
+        : `nivel de riesgo: ${cmd.danger}`;
+    }
     btn.dataset.commandIndex = idx;
     btn.onclick = () => selectCommand(idx);
     wrap.appendChild(btn);
   });
+}
+
+function commandTabLabel(command, values) {
+  const label = command.label.replace(/\{([^}]+)\}/g, (_, field) => values[field] || `<${field}>`);
+  return String(command.danger || '').toLowerCase() === 'high'
+    ? `${label} — RIESGO ALTO`
+    : label;
 }
 
 function selectCommand(idx) {
@@ -918,7 +929,7 @@ function updatePreview() {
 
   document.querySelectorAll('#cmdTabs .tab-btn').forEach((button) => {
     const tabCommand = t.commands[Number(button.dataset.commandIndex)];
-    button.textContent = tabCommand.label.replace(/\{([^}]+)\}/g, (_, field) => vals[field] || `<${field}>`);
+    button.textContent = commandTabLabel(tabCommand, vals);
   });
 
   document.getElementById('cmdPreview').textContent = buildPreviewString(t.binary, cmd.args, vals);
