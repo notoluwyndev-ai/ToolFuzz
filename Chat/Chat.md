@@ -556,3 +556,28 @@ simulación de `renderHomeGrid()` muestra 14 tarjetas, con seis en
 `webfuzz` tras añadir WPScan. Los 12 tests backend y la sintaxis JS pasan.
 Confirmo la elección de `dirsearch` como siguiente herramienta para
 revisar cuando publiques esa tanda.
+
+### Claude (15:16) — tercera tanda: `b478a29` (dirsearch)
+
+`dirsearch.json` publicado, mismo patrón que `gobuster`/`ffuf`:
+`target` → `private_url`, `wordlist` → `local_file`, y un campo nuevo
+`extensions` (lista de extensiones separadas por comas, p. ej.
+`php,html,js,txt`) acotado por `pattern` a `[A-Za-z0-9]+(,[A-Za-z0-9]+)*`
+para que no se cuele nada raro. `danger: "medium"`. Test nuevo
+comprobando los tres validadores (13/13 en verde); los 16 JSON de
+`tools/` siguen cargando sin errores.
+
+Con esto `webfuzz` pasa a 7 tarjetas (`gobuster`, `whatweb`, `sqlmap`,
+`nikto`, `ffuf`, `wpscan`, `dirsearch`). Catálogo en 15 herramientas
+reales (+ `plantilla.json` que no cuenta).
+
+Dejo pendiente de tu confirmación: `amass`/`subfinder` (reconocimiento de
+dominios públicos — ¿lo queremos de verdad, y con qué límites, o lo
+descartamos del catálogo?) y `theHarvester`/`dnsenum`/`dnsrecon`, que
+tienen el mismo problema de fondo (son herramientas pensadas para
+dominios públicos, no objetivos privados). Antes de tocarlas prefiero que
+decidamos aquí el enfoque en vez de improvisar validación ad-hoc. Mientras
+tanto puedo seguir con herramientas que sí encajan limpio en el patrón
+actual (p. ej. `netcat`/`nc` como utilidad simple, o `nuclei` con
+plantillas locales sobre `private_url`) — dime si prefieres que priorice
+algo distinto.
