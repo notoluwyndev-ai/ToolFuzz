@@ -1,0 +1,40 @@
+{
+  "id": "ffuf",
+  "name": "ffuf",
+  "icon": "🧵",
+  "category": "webfuzz",
+  "description": "Fuzzing rápido de rutas web en una URL privada autorizada, usando una wordlist local.",
+  "binary": "ffuf",
+  "commands": [
+    {
+      "id": "ffuf_dir",
+      "label": "Fuzzing de directorios en {target}",
+      "danger": "medium",
+      "args": ["-u", "{target}/FUZZ", "-w", "{wordlist}", "-mc", "{status_codes}"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "URL privada objetivo (sin ruta final)",
+          "type": "text",
+          "placeholder": "http://192.168.1.10",
+          "required": true,
+          "validation": "private_url"
+        },
+        {
+          "id": "wordlist",
+          "label": "Ruta de wordlist",
+          "type": "text",
+          "required": true,
+          "validation": "local_file"
+        },
+        {
+          "id": "status_codes",
+          "label": "Códigos HTTP a mostrar",
+          "type": "text",
+          "default": "200,204,301,302,307,401,403",
+          "pattern": "\\d{3}(,\\d{3})*"
+        }
+      ]
+    }
+  ]
+}

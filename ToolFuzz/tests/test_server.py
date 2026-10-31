@@ -55,6 +55,41 @@ class ValidateInputsTests(unittest.TestCase):
             with self.subTest(target=target), self.assertRaises(HTTPException):
                 server.validate_inputs(command, {"target": target})
 
+    def test_number_range_rejects_value_outside_bounds(self):
+        command = {
+            "fields": [
+                {
+                    "id": "risk",
+                    "required": True,
+                    "validation": "number_range",
+                    "min": 1,
+                    "max": 3,
+                }
+            ]
+        }
+
+        self.assertEqual(server.validate_inputs(command, {"risk": "2"}), {"risk": "2"})
+        with self.assertRaises(HTTPException):
+            server.validate_inputs(command, {"risk": "7"})
+
+    def test_pattern_validation_rejects_malformed_status_codes(self):
+        command = {
+            "fields": [
+                {
+                    "id": "status_codes",
+                    "required": True,
+                    "pattern": r"\d{3}(,\d{3})*",
+                }
+            ]
+        }
+
+        self.assertEqual(
+            server.validate_inputs(command, {"status_codes": "200,301,403"}),
+            {"status_codes": "200,301,403"},
+        )
+        with self.assertRaises(HTTPException):
+            server.validate_inputs(command, {"status_codes": "200; rm -rf /"})
+
 
 class LoadConfigTests(unittest.TestCase):
     def test_high_risk_commands_are_marked_for_ui_confirmation(self):
@@ -73,6 +108,29 @@ class LoadConfigTests(unittest.TestCase):
 
         self.assertEqual(target["validation"], "private_cidr")
         self.assertEqual(target["max_addresses"], 256)
+
+    def test_sqlmap_is_marked_high_risk_and_validates_target_url(self):
+        with self.assertLogs(server.logger, level="WARNING"):
+            config = server.load_config()
+        sqlmap = next(tool for tool in config["tools"] if tool["id"] == "sqlmap")
+        target_field = sqlmap["commands"][0]["fields"][0]
+
+        self.assertEqual(sqlmap["commands"][0]["danger"], "high")
+        self.assertEqual(target_field["validation"], "private_url")
+
+    def test_nikto_and_ffuf_load_with_private_url_targets(self):
+        with self.assertLogs(server.logger, level="WARNING"):
+            config = server.load_config()
+        loaded_ids = {tool["id"] for tool in config["tools"]}
+        self.assertIn("nikto", loaded_ids)
+        self.assertIn("ffuf", loaded_ids)
+
+        nikto = next(tool for tool in config["tools"] if tool["id"] == "nikto")
+        ffuf = next(tool for tool in config["tools"] if tool["id"] == "ffuf")
+        self.assertEqual(nikto["commands"][0]["fields"][0]["validation"], "private_url")
+        self.assertEqual(ffuf["commands"][0]["fields"][0]["validation"], "private_url")
+        wordlist_field = next(f for f in ffuf["commands"][0]["fields"] if f["id"] == "wordlist")
+        self.assertEqual(wordlist_field["validation"], "local_file")
 
     def test_invalid_tool_is_skipped_without_hiding_valid_tool(self):
         with tempfile.TemporaryDirectory() as temporary_directory:

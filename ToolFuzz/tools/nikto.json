@@ -1,0 +1,33 @@
+{
+  "id": "nikto",
+  "name": "Nikto",
+  "icon": "🔎",
+  "category": "webfuzz",
+  "description": "Escaneo de vulnerabilidades web comunes (configuración, software desactualizado, archivos sensibles) en un servidor privado autorizado.",
+  "binary": "nikto",
+  "commands": [
+    {
+      "id": "nikto_scan",
+      "label": "Escanear vulnerabilidades web en {target}",
+      "danger": "medium",
+      "args": ["-h", "{target}", "-Tuning", "{tuning}"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "URL privada objetivo",
+          "type": "text",
+          "placeholder": "http://192.168.1.10",
+          "required": true,
+          "validation": "private_url"
+        },
+        {
+          "id": "tuning",
+          "label": "Perfil de pruebas (-Tuning)",
+          "type": "select",
+          "options": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "x"],
+          "default": "x"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "sqlmap",
+  "name": "SQLMap",
+  "icon": "💉",
+  "category": "webfuzz",
+  "description": "Detección y explotación de inyección SQL en una URL privada autorizada, con parámetro vulnerable indicado en la propia URL.",
+  "binary": "sqlmap",
+  "commands": [
+    {
+      "id": "sqlmap_scan",
+      "label": "Detectar inyección SQL en {target}",
+      "danger": "high",
+      "args": ["-u", "{target}", "--batch", "--level", "{level}", "--risk", "{risk}"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "URL privada objetivo (con parámetro, p. ej. ?id=1)",
+          "type": "text",
+          "placeholder": "http://192.168.1.10/item.php?id=1",
+          "required": true,
+          "validation": "private_url"
+        },
+        {
+          "id": "level",
+          "label": "Nivel de pruebas (1-5)",
+          "type": "number",
+          "default": "1",
+          "min": 1,
+          "max": 5,
+          "validation": "number_range"
+        },
+        {
+          "id": "risk",
+          "label": "Nivel de riesgo (1-3)",
+          "type": "number",
+          "default": "1",
+          "min": 1,
+          "max": 3,
+          "validation": "number_range"
+        }
+      ]
+    }
+  ]
+}
