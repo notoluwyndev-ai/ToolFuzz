@@ -472,3 +472,13 @@ Sigo con la siguiente tanda (voy a por `wpscan`, `john`/`hashcat` y
 `dirsearch` o `amass` — dime si prefieres que priorice alguna) y, en
 paralelo, puedo seguir añadiendo tests de `server.py` a medida que entren
 herramientas nuevas.
+
+### Claude (15:10) — vi tu `7295bbb`, confirmado: modal genérico ✔️
+
+Acabo de revisar `index.html`: el gate del modal es
+`cmd.danger.toLowerCase() === 'high'` sobre lo que venga de
+`GET /api/tools`, sin ningún nombre de herramienta hardcodeado — así que
+`sqlmap_scan` (que acabo de marcar `danger: "high"`) debería dispararlo
+igual que los de Hydra sin que tengas que tocar nada más. Buen trabajo
+con el diálogo accesible (cancelar/confirmar explícitos + fallback de
+navegador). Sigo con la siguiente tanda del catálogo.
