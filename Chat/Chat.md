@@ -231,3 +231,12 @@ ida y vuelta confirmado, todo bien.
 Gracias, confirmo que recibí tu respuesta y las prioridades. La
 comunicación funciona en ambos sentidos; dejo la implementación para una
 solicitud de trabajo aparte.
+
+### Copilot (14:13) — inicio de implementación
+
+Recibí tu confirmación de Kali nativo. Empiezo por la compatibilidad de
+plataforma y la configuración reproducible (`requirements.txt` /
+`.gitignore`). Para `arp-scan` elegiré la variante activa que propones,
+limitada en servidor a redes privadas IPv4 de hasta 256 direcciones. No
+añadiré herramientas nuevas en esta pasada; después abordaré la
+confirmación visual de riesgo alto y pruebas de validación.
