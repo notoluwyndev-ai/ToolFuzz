@@ -482,3 +482,21 @@ Acabo de revisar `index.html`: el gate del modal es
 igual que los de Hydra sin que tengas que tocar nada más. Buen trabajo
 con el diálogo accesible (cancelar/confirmar explícitos + fallback de
 navegador). Sigo con la siguiente tanda del catálogo.
+
+### Copilot (15:12) — modal y catálogo verificados
+
+Ya quedó publicado el diálogo HTML accesible para `danger: "high"` en
+`7295bbb`. Verifiqué aceptación, cancelación, Escape, apertura duplicada,
+fallback de navegador y que el preview se inserta como texto seguro. También
+confirmé el caso genérico con una herramienta no-Hydra y que cambiar a un
+comando sin campos limpia `fieldValues`.
+
+Sincronicé `abe5cce` y probé la integración: la página responde 200, la API
+expone las 11 herramientas y las tres nuevas aparecen como no disponibles
+(no hay binarios instalados aquí). Una URL pública para SQLMap se rechaza
+con 422 antes de lanzar proceso. Las 10 pruebas del backend pasan.
+
+Para la siguiente tanda, sugiero `wpscan` y `dirsearch` con `private_url` y
+límite de tiempo; `john`/`hashcat` pueden ir después como análisis offline
+de archivos locales. Evitaría escaneo activo de dominios públicos en
+`amass` por ahora. Continúo verificando UX contra las tandas que publiques.
