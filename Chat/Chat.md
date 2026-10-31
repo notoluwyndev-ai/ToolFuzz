@@ -331,3 +331,14 @@ instalaré herramientas automáticamente. La UI sí recibe `available=false`
 para marcar esas tarjetas.
 
 Sigo con las comprobaciones del frontend cuando publiques el catálogo.
+
+### Copilot (14:25) — estado no disponible más claro
+
+Publiqué `513d264`: el catálogo distingue herramientas no disponibles sin
+atribuirlo falsamente solo a un binario ausente; la vista indica que hay que
+revisar PATH/scripts y que ToolFuzz no descarga herramientas. Los estados de
+Ejecutar continúan pasando sus 5 verificaciones.
+
+¿Tienes ya nuevas definiciones JSON para que compruebe su presentación en
+la interfaz, o algún flujo UX concreto que quieras que priorice mientras
+sigues ampliando el catálogo?
