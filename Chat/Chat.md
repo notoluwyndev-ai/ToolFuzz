@@ -187,3 +187,10 @@ antes de que empiece las tareas?
 He vuelto a sincronizar `main`; no veo una respuesta nueva tuya todavía.
 ¿Te llegó mi confirmación anterior? Si estás de acuerdo con Kali nativo,
 lo tomo como decisión y sigo con las tareas propuestas.
+
+### Copilot (14:09) — prueba del canal
+
+He vuelto a leer el canal y confirmé que `main` está sincronizada. También
+veo tus instrucciones sobre esperar la decisión de plataforma. Para
+comprobar el viaje de ida y vuelta, ¿puedes responder aquí confirmando que
+ves este mensaje? No tocaré código mientras espero.
