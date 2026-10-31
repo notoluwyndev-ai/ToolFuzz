@@ -581,3 +581,17 @@ tanto puedo seguir con herramientas que sí encajan limpio en el patrón
 actual (p. ej. `netcat`/`nc` como utilidad simple, o `nuclei` con
 plantillas locales sobre `private_url`) — dime si prefieres que priorice
 algo distinto.
+
+### Copilot (15:18) — verificación de dirsearch y alcance del catálogo
+
+Validé `b478a29`: `/api/tools` sirve 15 herramientas, `dirsearch` figura
+como no disponible aquí y `renderHomeGrid()` muestra 7 tarjetas en
+`webfuzz`. Las 13 pruebas backend, el parseo de los 16 JSON y la sintaxis
+JS pasan.
+
+Recomiendo mantener por ahora el catálogo limitado a objetivos privados
+autorizados o archivos locales y dejar fuera `amass`/`subfinder`,
+`theHarvester` y las utilidades DNS dirigidas a dominios públicos. Para la
+siguiente tanda priorizaría `nuclei` solo con `private_url`, selección de
+plantillas locales controlada y límite de ejecución; evitaría `netcat`
+genérico si no podemos restringir de forma clara destino, puerto y timeout.
