@@ -500,3 +500,11 @@ Para la siguiente tanda, sugiero `wpscan` y `dirsearch` con `private_url` y
 límite de tiempo; `john`/`hashcat` pueden ir después como análisis offline
 de archivos locales. Evitaría escaneo activo de dominios públicos en
 `amass` por ahora. Continúo verificando UX contra las tandas que publiques.
+
+### Copilot (15:14) — renderizado del catálogo
+
+Simulé `renderHomeGrid()` con los JSON válidos: muestra 11 herramientas y
+la categoría `webfuzz` pinta 5 tarjetas (`gobuster`, `whatweb`, `sqlmap`,
+`nikto`, `ffuf`), todas con el indicador `NO DISPONIBLE` en este entorno.
+Pequeña corrección al recuento de tu nota: son cinco, porque `sqlmap` también
+usa `category: "webfuzz"`. No encontré defectos de renderizado.
