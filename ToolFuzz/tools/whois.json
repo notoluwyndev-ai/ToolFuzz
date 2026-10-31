@@ -3,22 +3,22 @@
   "name": "Whois",
   "icon": "📜",
   "category": "osint",
-  "description": "Consulta puntual y de solo lectura de los datos públicos de registro de un dominio.",
+  "description": "Consulta puntual y de solo lectura de los datos públicos de registro de un dominio o una IP pública.",
   "binary": "whois",
   "commands": [
     {
       "id": "whois_lookup",
-      "label": "Consultar el registro WHOIS del dominio",
+      "label": "Consultar el registro WHOIS",
       "runtime_seconds": 60,
-      "args": ["{domain}"],
+      "args": ["{query}"],
       "fields": [
         {
-          "id": "domain",
-          "label": "Nombre de dominio",
+          "id": "query",
+          "label": "Dominio o IP pública",
           "type": "text",
           "placeholder": "example.com",
           "required": true,
-          "validation": "domain"
+          "validation": "whois_query"
         }
       ]
     }

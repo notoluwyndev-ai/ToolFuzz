@@ -122,6 +122,16 @@ def _validate_domain(value: str, field: dict[str, Any]) -> str:
     return normalized_domain
 
 
+def _validate_whois_query(value: str, field: dict[str, Any]) -> str:
+    try:
+        address = ipaddress.ip_address(value)
+    except ValueError:
+        return _validate_domain(value, field)
+    if not address.is_global or "%" in value:
+        raise HTTPException(status_code=422, detail="WHOIS solo admite direcciones IP públicas.")
+    return str(address)
+
+
 def _validate_private_cidr(value: str, field: dict[str, Any]) -> str:
     max_addresses = int(field.get("max_addresses", 256))
     try:
@@ -203,6 +213,7 @@ VALIDATORS: dict[str, Callable[[str, dict[str, Any]], str]] = {
     "private_url": _validate_private_url,
     "private_cidr": _validate_private_cidr,
     "domain": _validate_domain,
+    "whois_query": _validate_whois_query,
     "ports": _validate_ports,
     "limited_ports": _validate_limited_ports,
     "scan_rate": _validate_number_range,

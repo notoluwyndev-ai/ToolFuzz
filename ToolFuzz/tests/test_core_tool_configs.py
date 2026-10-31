@@ -22,18 +22,24 @@ class CoreToolConfigTests(unittest.TestCase):
         with self.assertRaises(server.HTTPException):
             server.validate_inputs(command, {"target": "8.8.8.8"})
 
-    def test_whois_is_domain_only_read_only_lookup_with_runtime_limit(self):
+    def test_whois_accepts_domains_and_public_ips_only(self):
         whois = self.tools["whois"]
         command = whois["commands"][0]
-        domain = command["fields"][0]
+        query = command["fields"][0]
 
-        self.assertEqual(domain["validation"], "domain")
-        self.assertEqual(command["args"], ["{domain}"])
+        self.assertEqual(query["validation"], "whois_query")
+        self.assertEqual(query["label"], "Dominio o IP pública")
+        self.assertEqual(command["args"], ["{query}"])
         self.assertLessEqual(command["runtime_seconds"], 60)
-        self.assertEqual(
-            server.validate_inputs(command, {"domain": "example.com"}),
-            {"domain": "example.com"},
-        )
+        for value in ("example.com", "8.8.8.8", "2001:4860:4860::8888"):
+            with self.subTest(value=value):
+                self.assertEqual(
+                    server.validate_inputs(command, {"query": value}),
+                    {"query": value},
+                )
+        for value in ("192.168.1.1", "127.0.0.1", "https://example.com/"):
+            with self.subTest(value=value), self.assertRaises(server.HTTPException):
+                server.validate_inputs(command, {"query": value})
 
     def test_whatweb_uses_kali_binary_and_low_aggression(self):
         whatweb = self.tools["whatweb"]
