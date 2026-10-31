@@ -1,0 +1,33 @@
+{
+  "id": "wpscan",
+  "name": "WPScan",
+  "icon": "🔌",
+  "category": "webfuzz",
+  "description": "Enumeración de plugins, temas y vulnerabilidades conocidas de WordPress en una URL privada autorizada.",
+  "binary": "wpscan",
+  "commands": [
+    {
+      "id": "wpscan_enumerate",
+      "label": "Enumerar WordPress en {target}",
+      "danger": "medium",
+      "args": ["--url", "{target}", "--enumerate", "{enumerate}", "--random-user-agent"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "URL privada objetivo",
+          "type": "text",
+          "placeholder": "http://192.168.1.10",
+          "required": true,
+          "validation": "private_url"
+        },
+        {
+          "id": "enumerate",
+          "label": "Qué enumerar (-e)",
+          "type": "select",
+          "options": ["vp", "vt", "u", "ap", "at"],
+          "default": "vp"
+        }
+      ]
+    }
+  ]
+}

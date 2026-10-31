@@ -1,0 +1,42 @@
+{
+  "id": "hashcat",
+  "name": "Hashcat",
+  "icon": "💻",
+  "category": "creds",
+  "description": "Crackeo de hashes mediante ataque de diccionario, usando un archivo local de hashes y una wordlist local. No acepta objetivos de red: opera solo sobre archivos locales.",
+  "binary": "hashcat",
+  "commands": [
+    {
+      "id": "hashcat_wordlist",
+      "label": "Crackear hashes con wordlist (modo {hash_mode})",
+      "danger": "high",
+      "args": ["-m", "{hash_mode}", "-a", "0", "{hashfile}", "{wordlist}"],
+      "fields": [
+        {
+          "id": "hash_mode",
+          "label": "Modo de hash (-m)",
+          "type": "number",
+          "default": "0",
+          "min": 0,
+          "max": 99999,
+          "validation": "number_range"
+        },
+        {
+          "id": "hashfile",
+          "label": "Archivo local de hashes",
+          "type": "text",
+          "required": true,
+          "validation": "local_file"
+        },
+        {
+          "id": "wordlist",
+          "label": "Ruta de wordlist local",
+          "type": "text",
+          "placeholder": "/usr/share/wordlists/rockyou.txt",
+          "required": true,
+          "validation": "local_file"
+        }
+      ]
+    }
+  ]
+}

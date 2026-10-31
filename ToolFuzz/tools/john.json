@@ -1,0 +1,33 @@
+{
+  "id": "john",
+  "name": "John the Ripper",
+  "icon": "🗝️",
+  "category": "creds",
+  "description": "Crackeo de hashes de contraseñas a partir de un archivo local de hashes y una wordlist local. No acepta objetivos de red: opera solo sobre archivos locales.",
+  "binary": "john",
+  "commands": [
+    {
+      "id": "john_wordlist",
+      "label": "Crackear hashes con wordlist",
+      "danger": "high",
+      "args": ["--wordlist={wordlist}", "{hashfile}"],
+      "fields": [
+        {
+          "id": "hashfile",
+          "label": "Archivo local de hashes",
+          "type": "text",
+          "required": true,
+          "validation": "local_file"
+        },
+        {
+          "id": "wordlist",
+          "label": "Ruta de wordlist local",
+          "type": "text",
+          "placeholder": "/usr/share/wordlists/rockyou.txt",
+          "required": true,
+          "validation": "local_file"
+        }
+      ]
+    }
+  ]
+}

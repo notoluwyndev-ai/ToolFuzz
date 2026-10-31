@@ -132,6 +132,27 @@ class LoadConfigTests(unittest.TestCase):
         wordlist_field = next(f for f in ffuf["commands"][0]["fields"] if f["id"] == "wordlist")
         self.assertEqual(wordlist_field["validation"], "local_file")
 
+    def test_credential_cracking_tools_are_local_only_and_high_risk(self):
+        with self.assertLogs(server.logger, level="WARNING"):
+            config = server.load_config()
+        for tool_id in ("john", "hashcat"):
+            with self.subTest(tool_id=tool_id):
+                tool = next(t for t in config["tools"] if t["id"] == tool_id)
+                command = tool["commands"][0]
+                self.assertEqual(command["danger"], "high")
+                validations = {f["validation"] for f in command["fields"] if "validation" in f}
+                # Solo deben operar sobre archivos locales: nada de
+                # private_host/private_url/private_cidr (serían objetivos
+                # de red) para herramientas que crackean hashes offline.
+                self.assertTrue(validations.issubset({"local_file", "number_range"}))
+
+    def test_wpscan_targets_private_url(self):
+        with self.assertLogs(server.logger, level="WARNING"):
+            config = server.load_config()
+        wpscan = next(tool for tool in config["tools"] if tool["id"] == "wpscan")
+        target_field = wpscan["commands"][0]["fields"][0]
+        self.assertEqual(target_field["validation"], "private_url")
+
     def test_invalid_tool_is_skipped_without_hiding_valid_tool(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             tools_directory = Path(temporary_directory)
