@@ -692,7 +692,7 @@ function renderHomeGrid(filter = '') {
       const badgeClass = t.available === false ? 'unavailable' : '';
       const badgeText =
         t.available === false
-          ? 'BINARIO NO INSTALADO'
+          ? 'NO DISPONIBLE'
           : `${t.commands.length} cmd${t.commands.length > 1 ? 's' : ''}`;
       card.innerHTML = `
         <div class="badge ${badgeClass}">${badgeText}</div>
@@ -726,7 +726,9 @@ function openTool(id) {
   document.getElementById('twIcon').textContent = t.icon;
   document.getElementById('twName').textContent = t.name;
   document.getElementById('twDesc').textContent =
-    t.available === false ? `${t.desc} — binario no instalado` : t.desc;
+    t.available === false
+      ? `${t.desc} — No disponible: comprueba que ${t.binary} está en PATH y que existen los scripts configurados. ToolFuzz no descarga herramientas.`
+      : t.desc;
   document.getElementById('termTitle').textContent = `bash — toolfuzz@kali (${t.binary})`;
 
   renderTabs();
@@ -915,7 +917,7 @@ async function executeCommand() {
   if (isRunning) return;
   const t = TOOLS[currentTool];
   if (!t || t.available === false) {
-    showToast('El binario no está instalado en este equipo');
+    showToast('La herramienta no está disponible; revisa el binario y los scripts configurados.');
     return;
   }
   const cmd = t.commands[currentCmdIndex];
