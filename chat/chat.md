@@ -1,0 +1,130 @@
+# ToolFuzz — canal Claude ⇄ Copilot
+
+Este archivo es el canal de sincronización. Claude (arquitectura/dirección
+técnica) escribe aquí tareas y revisiones; Copilot ejecuta y reporta estado,
+dudas o bloqueos. Mantener esto corto: resumir o borrar entradas resueltas
+en vez de dejar que crezca indefinidamente.
+
+---
+
+## Estado del repo (leído por Claude — 2026-10-31)
+
+Repo clonado y revisado en profundidad (`server.py`, `index.html`, los 8
+`tools/*.json` existentes, `tools/README.md`, `README.md`). Resumen:
+
+- Arquitectura actual: **100% data-driven**. `server.py` no tiene ninguna
+  lista de binarios/comandos permitidos — todo sale de `tools/*.json`.
+  `index.html` tampoco tiene catálogo hardcodeado — se construye entero
+  desde `GET /api/tools`. Esto es correcto y hay que mantenerlo así:
+  **nunca** volver a meter un catálogo de herramientas en el HTML ni en
+  `server.py`.
+- Validación de inputs en servidor (nunca confiar solo en el cliente):
+  `validate_inputs()` + tabla `VALIDATORS` en `server.py`. Varios
+  validadores (`private_host`, `private_cidr`, `private_url`) restringen
+  objetivos a redes privadas/loopback — bien, hay que seguir ese patrón
+  para cualquier comando nuevo con potencial de impacto en terceros
+  (fuerza bruta, scanners activos, etc.). No añadir comandos que acepten
+  IPs/dominios públicos como objetivo sin que quede explícitamente
+  justificado y documentado por qué es solo lectura/pasivo (p. ej. whois).
+- Ejecución: `asyncio.create_subprocess_exec` con lista de argumentos
+  (nunca `shell=True`, nunca concatenación de strings) — correcto, evita
+  inyección de shell. Mantener este patrón siempre.
+- Límites ya implementados: `MAX_RUNTIME_SECONDS` (900s), semáforo a 2
+  procesos concurrentes, `Host`/`Origin` restringidos a localhost.
+
+## Hallazgos / bugs a corregir (prioridad alta)
+
+1. **Inconsistencia de plataforma objetivo (bloqueante antes de seguir
+   añadiendo herramientas).** El proyecto mezcla señales de Windows y de
+   Kali/Linux:
+   - `server.py` línea 29: `SCRIPTS_DIR` usa `LOCALAPPDATA` /
+     `AppData\Local` (Windows) como ruta por defecto.
+   - `tools/whois.json` usa el flag `-accepteula`, que es de **whois de
+     Sysinternals (Windows)**, no existe en el `whois` estándar de
+     Linux/Kali.
+   - `tools/arp-scan.json` ejecuta `arp -a` y lo describe como "lo que
+     Windows ya conoce" — de nuevo asume Windows — pero el `id` del
+     archivo es `arp-scan`, sugiriendo que en algún momento se pensó en
+     el binario Linux `arp-scan` (barrido activo), no el `arp -a` pasivo.
+   - `index.html` (terminal) rotula todo como `bash — toolfuzz@kali`.
+   - `tools/whatweb.json` usa `binary: "ruby"` + `entrypoint: "whatweb"`
+     resuelto contra `SCRIPTS_DIR` — pero en Kali, `whatweb` ya es un
+     ejecutable directo en el `PATH` (con su propio shebang de ruby); no
+     hace falta invocarlo como script de `SCRIPTS_DIR`. Tal y como está,
+     en Kali esto falla porque `SCRIPTS_DIR` apunta a una ruta de
+     Windows que no existirá.
+
+   **Necesito una decisión antes de que seáis tocando más JSON de
+   herramientas:** ¿el objetivo es Windows (con binarios tipo Sysinternals
+   / WSL) o Kali Linux nativo? Por el naming del resto del proyecto
+   (nmap, gobuster, hydra, rustscan... herramientas que viven de forma
+   nativa en Kali) y el rótulo `toolfuzz@kali`, mi recomendación es
+   **Kali Linux nativo**, y tratar `SCRIPTS_DIR`/`entrypoint` como un
+   mecanismo opcional para casos reales (scripts propios de ToolFuzz),
+   no como la vía normal de lanzar herramientas que ya están en el PATH.
+
+   Tareas concretas una vez decidido (asumiendo Kali):
+   - `whatweb.json`: quitar `entrypoint`, poner `"binary": "whatweb"`
+     directo.
+   - `whois.json`: quitar `-accepteula` de `args` (deja solo `{domain}`).
+   - `arp-scan.json`: decidir si queremos el pasivo (`arp -a` vía
+     `binary: "arp"`, igual que ahora pero sin el comentario de Windows)
+     o el activo (`binary: "arp-scan"`, con validación `private_cidr`
+     para limitar el rango igual que `masscan`). Si es el activo, usar
+     `validation: "private_cidr"` en el campo de red, no un target suelto.
+   - `server.py`: cambiar el valor por defecto de `SCRIPTS_DIR` a algo
+     razonable en Linux (p. ej. `~/.local/share/toolfuzz/scripts` o
+     similar) y quitar la referencia a `LOCALAPPDATA` salvo que de verdad
+     vayamos a soportar Windows como plataforma secundaria explícita.
+
+2. **Falta `requirements.txt`** (o `pyproject.toml`) en la raíz de
+   `ToolFuzz/` — `server.py` depende de `fastapi`, `uvicorn`, `pydantic`.
+   Sin esto nadie puede levantar el backend de forma reproducible.
+   Fijar versiones mínimas razonables, no exactas a un patch.
+
+3. **Falta `.gitignore`** en la raíz del repo (`__pycache__/`, `.venv/`,
+   `*.pyc`, etc.).
+
+## Limpieza menor
+
+- `index.html`: hay un bloque de comentario duplicado justo antes de
+  `const BACKEND_URL` (dos veces el mismo bloque "CONFIGURACIÓN Y
+  CONEXIÓN CON BACKEND"). Quitar uno.
+
+## Nota sobre un diseño antiguo descartado
+
+He visto (fuera del repo, en el contexto de la conversación) una versión
+anterior con `comands.py` (allowlist hardcodeada en Python) y un
+`executor.py` con un flujo `propose → wait_for_approval → run` vía
+WebSocket. **Ese diseño está obsoleto y no está en el repo** — el propio
+`server.py` actual dice explícitamente que ya no importa `comands.py`.
+No lo resucitéis; el enfoque data-driven actual (JSON + validación en
+servidor) es el correcto y es el que hay que seguir extendiendo. Si en
+algún momento se quiere añadir un paso de confirmación extra para
+comandos `danger: high` (p. ej. un modal de confirmación en el cliente
+antes de llamar a `/api/run`), eso se hace en `index.html` sobre el
+flujo actual — no revivir el patrón de aprobación por WebSocket.
+
+## Próximos pasos propuestos (orden sugerido)
+
+1. Resolver el punto 1 (plataforma) — es un bloqueo real, no cosmético.
+2. Añadir `requirements.txt` y `.gitignore`.
+3. Confirmación en cliente para comandos con `danger: "high"` antes de
+   ejecutar (modal simple: "vas a lanzar X contra Y, ¿confirmas?").
+4. Seguir ampliando `tools/*.json` con el resto del catálogo (sqlmap,
+   nikto, nuclei, john, hashcat, etc.), **siempre** con el mismo patrón
+   de validación por target privado / wordlist local / límites de
+   tiempo y tasa que ya usan `nmap`/`masscan`/`hydra`.
+5. Tests básicos de `server.py` (carga de `tools/*.json` inválidos →
+   se omiten sin tumbar el servidor; `validate_inputs` rechaza target
+   público en un campo `private_host`, etc.).
+
+---
+
+## Copilot: reportar aquí
+
+- Estado actual / en qué estás trabajando.
+- Dudas, bloqueos, o puntos donde el JSON schema se queda corto para lo
+  que necesita una herramienta concreta.
+- Cuando termines una tarea de la lista de arriba, márcala y pasa a la
+  siguiente salvo que te indique otro orden.
