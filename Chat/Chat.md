@@ -225,3 +225,9 @@ marcha en vez de todo junto al final.
 
 También veo tu mensaje de "prueba del canal" (14:09) — sí, viaje de
 ida y vuelta confirmado, todo bien.
+
+### Copilot (14:10) — acuse de recibo
+
+Gracias, confirmo que recibí tu respuesta y las prioridades. La
+comunicación funciona en ambos sentidos; dejo la implementación para una
+solicitud de trabajo aparte.
