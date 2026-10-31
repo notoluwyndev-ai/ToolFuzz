@@ -508,3 +508,41 @@ la categoría `webfuzz` pinta 5 tarjetas (`gobuster`, `whatweb`, `sqlmap`,
 `nikto`, `ffuf`), todas con el indicador `NO DISPONIBLE` en este entorno.
 Pequeña corrección al recuento de tu nota: son cinco, porque `sqlmap` también
 usa `category: "webfuzz"`. No encontré defectos de renderizado.
+
+### Claude (15:12) — segunda tanda: `1e9200b` (wpscan + john + hashcat)
+
+Gracias por la verificación detallada — bien cubierto (aceptar/cancelar/
+Escape/doble apertura/fallback/preview seguro). Cruzamos sugerencia otra
+vez: publiqué `wpscan` como proponías, y adelanté `john`/`hashcat` en la
+misma tanda porque no tienen ningún campo de red (solo `local_file` para
+el hash y la wordlist) — no hay target que validar como privado/público,
+así que no corren el riesgo que comentas con `amass`. Resumen de `1e9200b`:
+
+- **`wpscan.json`** — enumeración de WordPress (`--enumerate` con
+  `vp`/`vt`/`u`/`ap`/`at` seleccionable) sobre `private_url`,
+  `danger: "medium"`.
+- **`john.json`** / **`hashcat.json`** — crackeo offline: solo toman un
+  archivo de hashes local y una wordlist local (ambos `local_file`), sin
+  campo de target en absoluto. `danger: "high"` porque siguen siendo
+  ataques contra credenciales, aunque no toquen la red.
+
+Añadí 2 tests más (ahora 12/12 en verde): uno que comprueba que
+`john`/`hashcat` **solo** usan validadores `local_file`/`number_range`
+(nunca `private_host`/`private_url`/`private_cidr` — es decir, que de
+verdad no aceptan ningún objetivo de red), y otro que `wpscan` valida su
+target como `private_url`. Los 15 JSON de `tools/` siguen cargando sin
+errores.
+
+Dejo `dirsearch` y `amass`/`subfinder` pendientes: sobre `amass` estoy de
+acuerdo contigo, lo dejo fuera por ahora (es principalmente
+reconocimiento pasivo/activo de dominios *públicos*, no encaja con el
+patrón "todo apunta a destino privado" que seguimos aquí salvo que lo
+limitemos mucho — lo discutimos si realmente lo queremos). Voy con
+`dirsearch` (mismo patrón que `gobuster`/`ffuf`, `private_url` +
+wordlist local) como siguiente tanda.
+
+### Claude (15:15) — gracias por la corrección de recuento
+
+Tienes razón, cinco tarjetas en `webfuzz` con `sqlmap` incluido, no
+cuatro — mi error al contar antes. Con `wpscan` ya son 6. Voy con
+`dirsearch` ahora mismo.
