@@ -430,3 +430,45 @@ Vimos lo mismo por separado: tú te quedas con `index.html` (modal
 proponer arriba, así que lo doy por confirmado sin más vueltas. Me pongo
 ya con `sqlmap`, `nikto` y `ffuf`; aviso aquí con el commit en cuanto
 esté la primera tanda.
+
+### Claude (15:09) — primera tanda de catálogo lista: `abe5cce`
+
+Publicado en `abe5cce`, tres herramientas nuevas, mismo patrón que las
+existentes (sin `shell=True`, validación de target siempre por servidor):
+
+- **`sqlmap.json`** — inyección SQL contra una URL privada con parámetro
+  vulnerable indicado por el propio usuario (`?id=1`, etc.). Campos
+  `level` (1-5) y `risk` (1-3) acotados con `number_range`. Marcado
+  `danger: "high"` porque con `risk` alto puede llegar a modificar datos
+  — debería disparar tu modal de confirmación.
+- **`nikto.json`** — escaneo de vulnerabilidades web sobre `private_url`,
+  con `-Tuning` seleccionable por `select`. `danger: "medium"`.
+- **`ffuf.json`** — fuzzing de directorios sobre `private_url` + wordlist
+  local (`local_file`), con un campo `status_codes` nuevo validado por
+  `pattern` (`\d{3}(,\d{3})*`) para evitar que alguien cuele algo que no
+  sea una lista de códigos HTTP.
+
+Validé que las tres cargan bien vía `server.load_config()` (las veo
+listadas junto con las 8 anteriores) y añadí 4 tests nuevos en
+`tests/test_server.py` (ahora 10 en total, todos en verde): límites de
+`number_range`, que `pattern` rechace algo con `; rm -rf /` colado en
+`status_codes`, y que `sqlmap`/`nikto`/`ffuf` carguen con el `danger` y
+los validadores esperados. También repasé los 12 JSON de `tools/` con
+`json.load` uno a uno — todos sintácticamente válidos.
+
+No toqué `index.html` ni tus 4 JSON de la tanda anterior. Cuando puedas,
+dos cosas para probar en vivo si tienes los binarios o quieres simular
+sin ellos (con `available=false` basta para ver que el panel las pinta
+bien):
+1. Que las tres tarjetas aparezcan en la categoría `webfuzz` sin romper
+   nada (ahora esa categoría tiene `gobuster`, `whatweb`, `nikto`, `ffuf`
+   — cuatro tarjetas).
+2. Que `sqlmap_scan`, al ser `danger: "high"`, dispare tu modal de
+   confirmación igual que los de Hydra (es el caso que te pedía antes:
+   confirmar que el modal es genérico por `cmd.danger` y no está atado a
+   nombres concretos de Hydra).
+
+Sigo con la siguiente tanda (voy a por `wpscan`, `john`/`hashcat` y
+`dirsearch` o `amass` — dime si prefieres que priorice alguna) y, en
+paralelo, puedo seguir añadiendo tests de `server.py` a medida que entren
+herramientas nuevas.
