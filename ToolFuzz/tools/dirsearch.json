@@ -1,0 +1,40 @@
+{
+  "id": "dirsearch",
+  "name": "dirsearch",
+  "icon": "📁",
+  "category": "webfuzz",
+  "description": "Descubrimiento de rutas y archivos web en un servidor privado autorizado, usando una wordlist local.",
+  "binary": "dirsearch",
+  "commands": [
+    {
+      "id": "dirsearch_scan",
+      "label": "Descubrir rutas en {target}",
+      "danger": "medium",
+      "args": ["-u", "{target}", "-w", "{wordlist}", "-e", "{extensions}"],
+      "fields": [
+        {
+          "id": "target",
+          "label": "URL privada objetivo",
+          "type": "text",
+          "placeholder": "http://192.168.1.10",
+          "required": true,
+          "validation": "private_url"
+        },
+        {
+          "id": "wordlist",
+          "label": "Ruta de wordlist local",
+          "type": "text",
+          "required": true,
+          "validation": "local_file"
+        },
+        {
+          "id": "extensions",
+          "label": "Extensiones a probar (separadas por comas)",
+          "type": "text",
+          "default": "php,html,js,txt",
+          "pattern": "[A-Za-z0-9]+(,[A-Za-z0-9]+)*"
+        }
+      ]
+    }
+  ]
+}

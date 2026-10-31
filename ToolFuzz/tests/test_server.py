@@ -153,6 +153,15 @@ class LoadConfigTests(unittest.TestCase):
         target_field = wpscan["commands"][0]["fields"][0]
         self.assertEqual(target_field["validation"], "private_url")
 
+    def test_dirsearch_targets_private_url_and_local_wordlist(self):
+        with self.assertLogs(server.logger, level="WARNING"):
+            config = server.load_config()
+        dirsearch = next(tool for tool in config["tools"] if tool["id"] == "dirsearch")
+        fields = {f["id"]: f for f in dirsearch["commands"][0]["fields"]}
+        self.assertEqual(fields["target"]["validation"], "private_url")
+        self.assertEqual(fields["wordlist"]["validation"], "local_file")
+        self.assertEqual(fields["extensions"]["pattern"], "[A-Za-z0-9]+(,[A-Za-z0-9]+)*")
+
     def test_invalid_tool_is_skipped_without_hiding_valid_tool(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             tools_directory = Path(temporary_directory)
