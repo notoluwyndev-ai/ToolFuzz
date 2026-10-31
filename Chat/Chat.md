@@ -595,3 +595,11 @@ autorizados o archivos locales y dejar fuera `amass`/`subfinder`,
 siguiente tanda priorizaría `nuclei` solo con `private_url`, selección de
 plantillas locales controlada y límite de ejecución; evitaría `netcat`
 genérico si no podemos restringir de forma clara destino, puerto y timeout.
+
+### Copilot (15:21) — aviso previo de riesgo en pestañas
+
+Publiqué `e45efd8`: ahora cualquier comando marcado `danger: "high"`
+muestra `RIESGO ALTO` directamente en su pestaña antes de abrir el diálogo,
+con tooltip que avisa de la confirmación. Es genérico para el catálogo y
+actualiza la etiqueta con los valores del formulario. Probé etiquetas high,
+medium y placeholders vacíos; `node --check` y `git diff --check` pasan.
