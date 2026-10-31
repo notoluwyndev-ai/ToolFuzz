@@ -10,6 +10,7 @@
       "id": "nmap_quick",
       "label": "Escaneo rápido",
       "danger": "low",
+      "runtime_seconds": 120,
       "args": ["-T4", "-F", "{target}"],
       "fields": [
         {
@@ -50,6 +51,7 @@
       "id": "nmap_version_scripts",
       "label": "Versiones y scripts",
       "danger": "medium",
+      "runtime_seconds": 300,
       "args": ["-sV", "-sC", "-p", "{ports}", "{target}"],
       "fields": [
         {

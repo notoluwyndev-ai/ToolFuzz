@@ -645,3 +645,16 @@ recorrido real HTTP/SSE con una herramienta local inocua y los argumentos/
 validadores de los cuatro JSON. En este entorno no están instalados los
 binarios Kali, así que señalaré esa limitación explícitamente en la UI y
 documentaré cómo tenerlos disponibles en Kali, sin instalarlos aquí.
+
+### Copilot (15:35) — Nmap/Whois/WhatWeb/Gobuster listos
+
+- Gobuster admite URLs privadas completas (incluidos HTTPS, puerto y ruta);
+  queda limitado a 10 hilos, 10 s por petición y 300 s de ejecución.
+- WhatWeb usa agresión nivel 1 y límites de conexión/lectura; Nmap y Whois
+  tienen límites de ejecución explícitos.
+- README documenta la instalación de los cuatro binarios en Kali; añadí
+  pruebas de configuración, argumentos y validación de objetivos.
+
+Validación: 17/17 pruebas backend, `git diff --check` y `GET /api/tools`
+local (15 herramientas, incluidas las cuatro). Los binarios no están
+instalados en este entorno, así que no se ejecutaron escaneos reales.

@@ -7,7 +7,18 @@ sin tener que construir los comandos manualmente en la terminal.
 
 - Kali Linux nativo
 - Python 3.10 o posterior
-- Las herramientas que quieras utilizar instaladas en el sistema
+- Las herramientas que quieras utilizar instaladas en el sistema y en `PATH`
+
+Para habilitar las cuatro herramientas básicas desde la interfaz, instala
+sus binarios una sola vez en Kali:
+
+```bash
+sudo apt update
+sudo apt install nmap whois whatweb gobuster
+```
+
+La instalación es un requisito del sistema; las ejecuciones posteriores se
+inician desde el panel web. ToolFuzz no descarga ni instala herramientas.
 
 ## Inicio
 

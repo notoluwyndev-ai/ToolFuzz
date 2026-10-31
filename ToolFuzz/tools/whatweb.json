@@ -9,7 +9,8 @@
     {
       "id": "whatweb_private",
       "label": "Identificación de tecnologías web",
-      "args": ["--no-errors", "{url}"],
+      "runtime_seconds": 60,
+      "args": ["--no-errors", "--aggression", "1", "--open-timeout=5", "--read-timeout=10", "{url}"],
       "fields": [
         {
           "id": "url",

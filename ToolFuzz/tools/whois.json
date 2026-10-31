@@ -9,6 +9,7 @@
     {
       "id": "whois_lookup",
       "label": "Consultar el registro WHOIS del dominio",
+      "runtime_seconds": 60,
       "args": ["{domain}"],
       "fields": [
         {

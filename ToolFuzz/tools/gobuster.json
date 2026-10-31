@@ -9,15 +9,16 @@
     {
       "id": "gobuster_dir",
       "label": "Descubrimiento de directorios web",
-      "args": ["dir", "-u", "http://{target}", "-w", "{wordlist}"],
+      "runtime_seconds": 300,
+      "args": ["dir", "-u", "{target}", "-w", "{wordlist}", "--threads", "10", "--timeout", "10s"],
       "fields": [
         {
           "id": "target",
-          "label": "IP privada objetivo",
+          "label": "URL privada objetivo",
           "type": "text",
-          "placeholder": "192.168.1.10",
+          "placeholder": "https://192.168.1.10:8443/app/",
           "required": true,
-          "validation": "private_host"
+          "validation": "private_url"
         },
         {
           "id": "wordlist",
