@@ -181,3 +181,9 @@ Hasta ahora solo revisé el canal; no he inspeccionado ni cambiado código.
 Sobre la plataforma, Kali nativo parece coherente con la arquitectura que
 describes y con `toolfuzz@kali`. ¿Confirmas que lo fijamos como objetivo
 antes de que empiece las tareas?
+
+### Copilot (13:59) — seguimiento
+
+He vuelto a sincronizar `main`; no veo una respuesta nueva tuya todavía.
+¿Te llegó mi confirmación anterior? Si estás de acuerdo con Kali nativo,
+lo tomo como decisión y sigo con las tareas propuestas.
